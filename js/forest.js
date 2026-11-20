@@ -2192,10 +2192,16 @@
   let pending = 0;
 
   // measure the page again and, if it has changed, plant the forest again
+  let took = 0; // how long that took the last time, and when it was done
+  let tookAt = 0;
+  let soon = 0;
   function rebuild() {
-    pending = 0;
+    clearTimeout(pending);
+    clearTimeout(soon);
+    pending = soon = 0;
     root.classList.remove('resizing');
     if (lost || dead) return; // if the context returns, it is all measured and planted again
+    const began = performance.now();
     measure();
     if (signature() !== planted) plant();
     bindClearings();
@@ -2205,25 +2211,29 @@
       if (show()) return;
     }
     paint();
+    tookAt = performance.now();
+    took = tookAt - began;
   }
 
   // while the window is being dragged to another size the text moves at once
   // and the forest, planted for the old size, does not: the clearings are no
-  // longer where the text is. it steps back until it has been planted again.
-  // where the machine can plant it again within a frame or so, it does not
-  // need to: the forest is planted again there and then, and moves with the
-  // window.
-  let sluggish = false;
+  // longer where the text is. so it is planted again there and then, and
+  // moves with the window: on every step of the drag where that is quick, and
+  // otherwise as often as leaves the machine a third of its time for the rest
+  // (a big window on a slow machine: the forest then follows a few frames
+  // behind, which is a good deal better than no forest). only where planting
+  // takes a quarter of a second and more does it step back until the window
+  // has come to rest.
   function stepBack() {
-    if (!sluggish && !lost && !dead) {
-      clearTimeout(pending);
-      const began = performance.now();
-      rebuild();
-      sluggish = performance.now() - began > 40;
+    if (lost || dead) return;
+    if (took > 250) {
+      root.classList.add('resizing');
+      scheduleRebuild();
       return;
     }
-    root.classList.add('resizing');
-    scheduleRebuild();
+    const wait = took * 1.5 - (performance.now() - tookAt);
+    if (took <= 24 || wait <= 0) rebuild();
+    else if (!soon) soon = setTimeout(rebuild, wait);
   }
 
   function scheduleRebuild() {
