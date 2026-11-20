@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>daymi — building stuff, i guess</title>
+  <meta name="description" content="daniel kistner, developer in baden-württemberg, working student at frei GmbH. parts list, notes, contact.">
+  <meta property="og:title" content="daymi — building stuff, i guess">
+  <meta property="og:description" content="daniel kistner, developer in baden-württemberg, working student at frei GmbH.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://daymi.dev/">
+  <meta property="og:site_name" content="daymi.dev">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:site" content="@itsdaymi">
+  <meta name="theme-color" content="#F2F4F6">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23F2F4F6'/%3E%3Crect x='2' y='2' width='28' height='28' fill='none' stroke='%2323292E' stroke-width='2'/%3E%3Ccircle cx='22.5' cy='9.5' r='4.5' fill='none' stroke='%23DE5307' stroke-width='2'/%3E%3Cpath d='M16 12 L22.5 9.5' stroke='%23DE5307' stroke-width='1.5'/%3E%3Ctext x='7' y='26' font-family='Arial Narrow,Arial,sans-serif' font-weight='800' font-size='21' fill='%2323292E'%3Ed%3C/text%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script>document.documentElement.classList.add('js');</script>
+</head>
+<body>
+  <div class="sheet-frame" aria-hidden="true"></div>
+  <a class="skip" href="#parts">skip to the parts list</a>
+
+  <div class="page">
+    <header class="top">
+      <a class="brand" href="#">daymi.dev</a>
+      <nav aria-label="sections">
+        <a href="#parts">parts list</a>
+        <a href="#notes">notes</a>
+        <a href="#contact">contact</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero" aria-labelledby="hero-title">
+        <h1 id="hero-title" class="sr-only">daymi</h1>
+
+        <div class="drawing" id="drawing">
+          <svg class="exploded" id="exploded" viewBox="0 0 1400 1000" role="group" aria-labelledby="drawing-title" aria-describedby="drawing-desc">
+            <title id="drawing-title">exploded view of the name daymi</title>
+            <desc id="drawing-desc">the five letters drawn as machined parts, pulled apart along one axis. balloons 1 to 5 point at each part and match the legend.</desc>
+            <defs>
+              <pattern id="hatch" patternUnits="userSpaceOnUse" width="11" height="11" patternTransform="rotate(45)">
+                <line class="hatch-line" x1="0" y1="0" x2="0" y2="11"></line>
+              </pattern>
+              <marker id="arrow-ink" class="arrow-ink" viewBox="0 0 14 6" refX="14" refY="3" markerWidth="14" markerHeight="6" markerUnits="userSpaceOnUse" orient="auto">
+                <path d="M0,0 L14,3 L0,6 Z"></path>
+              </marker>
+              <marker id="arrow-signal" class="arrow-signal" viewBox="0 0 14 6" refX="14" refY="3" markerWidth="14" markerHeight="6" markerUnits="userSpaceOnUse" orient="auto">
+                <path d="M0,0 L14,3 L0,6 Z"></path>
+              </marker>
+              <marker id="arrow-dim" class="arrow-ink" viewBox="0 0 14 6" refX="14" refY="3" markerWidth="14" markerHeight="6" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+                <path d="M0,0 L14,3 L0,6 Z"></path>
+              </marker>
+            </defs>
+            <g class="chrome" id="chrome-axis"></g>
+            <g class="chrome" id="chrome-dims"></g>
+            <g class="parts" id="parts-group">
+              <g class="part" data-i="0" style="--k:0" tabindex="0" role="button" aria-pressed="false" aria-label="part 1, d" aria-describedby="legend-1"><text class="glyph" x="0" y="640" font-size="320">d</text></g>
+              <g class="part" data-i="1" style="--k:1" tabindex="0" role="button" aria-pressed="false" aria-label="part 2, a" aria-describedby="legend-2"><text class="glyph" x="165" y="640" font-size="320">a</text></g>
+              <g class="part" data-i="2" style="--k:2" tabindex="0" role="button" aria-pressed="false" aria-label="part 3, y" aria-describedby="legend-3"><text class="glyph" x="318" y="640" font-size="320">y</text></g>
+              <g class="part" data-i="3" style="--k:3" tabindex="0" role="button" aria-pressed="false" aria-label="part 4, m" aria-describedby="legend-4"><text class="glyph" x="462" y="640" font-size="320">m</text></g>
+              <g class="part" data-i="4" style="--k:4" tabindex="0" role="button" aria-pressed="false" aria-label="part 5, i" aria-describedby="legend-5"><text class="glyph" x="700" y="640" font-size="320">i</text></g>
+            </g>
+            <g class="chrome" id="chrome-balloons"></g>
+          </svg>
+        </div>
+
+        <div class="side">
+        <div class="legend-wrap">
+          <ol class="legend" id="legend" aria-label="positions">
+            <li id="legend-1" data-i="0"><span class="pos" aria-hidden="true">1</span><span class="glyph" aria-hidden="true">d</span><span class="fact">daniel kistner. goes by daymi.</span></li>
+            <li id="legend-2" data-i="1"><span class="pos" aria-hidden="true">2</span><span class="glyph" aria-hidden="true">a</span><span class="fact">developer. builds tools for coding agents.</span></li>
+            <li id="legend-3" data-i="2"><span class="pos" aria-hidden="true">3</span><span class="glyph" aria-hidden="true">y</span><span class="fact">works at frei GmbH.</span></li>
+            <li id="legend-4" data-i="3"><span class="pos" aria-hidden="true">4</span><span class="glyph" aria-hidden="true">m</span><span class="fact">baden-württemberg, stuttgart region.</span></li>
+            <li id="legend-5" data-i="4"><span class="pos" aria-hidden="true">5</span><span class="glyph" aria-hidden="true">i</span><span class="fact">lowercase. always.</span></li>
+          </ol>
+        </div>
+
+        <div class="titleblock">
+          <table class="rev" aria-label="revisions">
+            <thead>
+              <tr><th scope="col">änd.</th><th scope="col">datum</th><th scope="col">name</th><th scope="col">bemerkung</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>a</td><td>2026</td><td>daymi</td><td>first sheet</td></tr>
+            </tbody>
+          </table>
+          <dl class="tb" aria-label="title block">
+            <div class="tight"><dt>gezeichnet</dt><dd>daniel kistner</dd></div>
+            <div class="end-narrow"><dt>datum</dt><dd>2026</dd></div>
+            <div><dt>maßstab</dt><dd>1:1</dd></div>
+            <div class="end"><dt>blatt</dt><dd>1 / 1</dd></div>
+            <div class="span2"><dt>werkstoff</dt><dd>software, mostly</dd></div>
+            <div class="span2 end"><dt>allgemeintoleranz</dt><dd>ISO 2768-m</dd></div>
+            <div class="span2 last big"><dt>benennung</dt><dd>daymi</dd></div>
+            <div class="span2 end last big last-narrow"><dt>zeichnungsnummer</dt><dd>daymi.dev</dd></div>
+          </dl>
+        </div>
+        </div>
+
+        <p class="bio">building stuff, i guess</p>
+      </section>
+
+      <section id="parts" aria-labelledby="parts-title">
+        <div class="section-head">
+          <h2 id="parts-title">Stückliste</h2>
+          <p>parts list, <span id="parts-count">6</span> positions</p>
+        </div>
+        <noscript><p class="noscript">the parts list is rendered by script.js. without it, the projects are on <a href="https://github.com/itsdaymi">github</a>.</p></noscript>
+        <div class="bom-wrap">
+          <table class="bom">
+            <thead>
+              <tr>
+                <th scope="col" class="c-pos">pos.</th>
+                <th scope="col" class="c-part">part</th>
+                <th scope="col" class="c-desc">description</th>
+                <th scope="col" class="c-mat">material</th>
+                <th scope="col" class="c-year">year</th>
+                <th scope="col" class="c-link">link</th>
+              </tr>
+            </thead>
+            <tbody id="bom-body">
+              <!-- rows are rendered from the PROJECTS list at the top of script.js -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="notes" class="notes" aria-labelledby="notes-title">
+        <div class="section-head">
+          <h2 id="notes-title">Hinweise</h2>
+          <p>notes</p>
+        </div>
+        <p>i'm daniel, a developer in baden-württemberg and a working student at frei GmbH. what i build is on github, in varying states of done.</p>
+      </section>
+
+      <section id="contact" class="contact" aria-labelledby="contact-title">
+        <div class="section-head">
+          <h2 id="contact-title">Kontakt</h2>
+          <p>contact</p>
+        </div>
+        <dl>
+          <dt>github</dt>
+          <dd><a href="https://github.com/itsdaymi">github.com/itsdaymi</a></dd>
+          <dt>x</dt>
+          <dd><a href="https://x.com/itsdaymi">x.com/itsdaymi</a></dd>
+          <dt>email</dt>
+          <dd>
+            <a href="mailto:daniel@daymi.dev">daniel@daymi.dev</a>
+            <button class="copy" type="button" data-copy="daniel@daymi.dev">copy</button>
+            <span class="copy-status" role="status" aria-live="polite"></span>
+          </dd>
+        </dl>
+      </section>
+    </main>
+
+    <footer>
+      <span>daymi.dev</span>
+      <span>2026</span>
+    </footer>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

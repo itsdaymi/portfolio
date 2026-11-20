@@ -4,6 +4,10 @@
 
 static html, css and js. no build step, no dependencies.
 
+## the front page
+
+`index.html` is a collage of every design three models produced for this brief: fable 5.1, opus 5.5 and fable 5.2. one column per model, one row per stage, from first sketches to where each run ended. every design can be opened live, full screen on the page or in a new tab. the designs live under `designs/<model>/`, and the captures the collage shows are in `shots/`.
+
 ## what it tests
 
 a homepage on its own is easy. this one is not, on purpose:
@@ -23,15 +27,15 @@ give a model this repo (or the brief without it) and compare what comes back. a 
 3. look at it in a browser at a few widths, in light and dark, with javascript off and with reduced motion, and keep screenshots.
 4. judge it on how it looks and on the list above, not on how much code there is.
 
-the page as it stands on `main` is the reference.
+the reference is fable 5.2's page in `designs/fable-5-2/site/`.
 
 ## the page
 
-the page is the black forest seen from above. the name is cut into the trees, everything else sits in a clearing, and a trail runs through all of it.
+the reference page (`designs/fable-5-2/site/`) is the black forest seen from above. the name is cut into the trees, everything else sits in a clearing, and a trail runs through all of it.
 
 ### run it
 
-open `index.html`, or serve the folder with anything:
+open `designs/fable-5-2/site/index.html`, or serve the repo with anything:
 
 ```
 npx serve .
@@ -59,6 +63,8 @@ the name is drawn in ink by default and only hands over to the forest once a pai
 
 ### files
 
+paths below are relative to `designs/fable-5-2/site/`.
+
 ```
 index.html
 css/style.css
@@ -67,5 +73,13 @@ js/forest.js      the forest
 data/projects.js
 fonts/            barlow, self-hosted (sil open font license)
 og.jpg            link preview image
+```
+
+at the repo root:
+
+```
+index.html        the collage of all three models
+shots/            captures used by the collage
+designs/          every design, runnable as is
 robots.txt        keeps crawlers out
 ```

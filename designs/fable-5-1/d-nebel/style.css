@@ -1,0 +1,472 @@
+/* d-nebel — the black forest at six in the morning.
+   one number, --walk (0..1), is your position on the path. everything else is a calc() of it. */
+
+@property --walk {
+  syntax: '<number>';
+  inherits: true;
+  initial-value: 0;
+}
+
+:root {
+  --tanne: #0E1512;
+  --moos: #15201B;
+  --nebel: #9DB0A7;
+  --milch: #DCE6E0;
+  --morgen: #E6E1D6;
+  --bollen: #D2231F;
+  --fir: #0A100D;
+
+  --serif: "Bodoni Moda", "Bodoni 72", Didot, "Times New Roman", serif;
+  --sans: "Schibsted Grotesk", "Helvetica Neue", Arial, sans-serif;
+
+  --total: 8.3;        /* depth of the clearing in screens; set by script from the project count */
+  --depth: 650px;      /* z per screen */
+  --persp: 1100px;
+  --eye: 58%;          /* eye level: perspective origin, horizon */
+}
+
+html {
+  background: var(--tanne);
+  color: var(--milch);
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  font: 400 1.0625rem/1.55 var(--sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* scroll position drives --walk natively where the browser can; script.js does it elsewhere */
+@supports (animation-timeline: scroll()) {
+  body {
+    animation-name: walk;
+    animation-duration: auto;
+    animation-timing-function: linear;
+    animation-fill-mode: both;
+    animation-timeline: scroll(root);
+  }
+}
+@keyframes walk {
+  from { --walk: 0; }
+  to   { --walk: 1; }
+}
+
+::selection { background: var(--nebel); color: var(--tanne); }
+
+a {
+  color: var(--milch);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-decoration-color: rgb(157 176 167 / .45);
+  text-underline-offset: .18em;
+  transition: text-decoration-color .12s;
+}
+a:hover { text-decoration-color: var(--bollen); }
+
+:focus-visible {
+  outline: 2px solid var(--bollen);
+  outline-offset: 4px;
+  border-radius: 2px;
+}
+
+.sr {
+  position: absolute;
+  width: 1px; height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* ---------- the valley ---------- */
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+}
+.veil {
+  position: absolute;
+  inset: 0;
+}
+.veil.cold {
+  background:
+    radial-gradient(ellipse 62% 48% at 50% var(--eye), rgb(220 230 224 / .34), rgb(157 176 167 / .16) 42%, transparent 74%),
+    linear-gradient(180deg, rgb(157 176 167 / .12), transparent 38%, transparent 66%, var(--moos) 100%);
+  opacity: calc(1 - var(--walk) * .45);
+}
+.veil.warm {
+  background:
+    radial-gradient(ellipse 84% 50% at 50% calc(var(--eye) + 4%), rgb(230 225 214 / .74), rgb(230 225 214 / .28) 44%, transparent 78%),
+    linear-gradient(180deg, rgb(230 225 214 / .12), transparent 40%);
+  opacity: calc(var(--walk) * var(--walk) * var(--walk));
+}
+
+.scene {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  perspective: var(--persp);
+  perspective-origin: 50% var(--eye);
+  transform-style: preserve-3d;
+  --cam: calc(var(--walk) * var(--total));
+}
+.scene .layer {
+  position: absolute;
+  left: 0; top: 0;
+  width: 100%; height: 100%;
+  will-change: transform;
+  /* treadmill: layer k lives at depth k, walks toward you, respawns far away while invisible */
+  --d: calc(mod(var(--k) - var(--cam) + .8, var(--cycle)) - .8);
+  --dp: max(var(--d), 0);
+  --dn: max(calc(-1 * var(--d)), 0);
+  transform: translateZ(calc(var(--d) * -1 * var(--depth)));
+}
+.scene .firs {
+  --cycle: 5;
+  left: -150%;
+  width: 400%;
+  opacity: calc(
+    (1 / (1 + .45 * var(--dp) + .10 * var(--dp) * var(--dp)))
+    * clamp(0, 1 - var(--dn) / .8, 1)
+    * clamp(0, (4.2 - var(--d)) / 1.1, 1)
+  );
+}
+.scene .firs svg {
+  position: absolute;
+  inset: 0;
+  width: 100%; height: 100%;
+  fill: var(--fir);
+  /* the bases dissolve into ground mist instead of ending on a line */
+  -webkit-mask-image: linear-gradient(to top, transparent 1%, #000 14%);
+  mask-image: linear-gradient(to top, transparent 1%, #000 14%);
+}
+.scene .fog {
+  --cycle: 3;
+  top: 20%;
+  height: 64%;
+  opacity: calc(clamp(0, 1 - abs(var(--d) - .8) / 1.3, 1) * .4);
+}
+.scene .fog canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%; height: 100%;
+}
+
+/* the first breath: thick fog that thins while the name resolves */
+.breath {
+  position: fixed;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 80% 70% at 50% var(--eye), rgb(220 230 224 / .62), rgb(157 176 167 / .34) 45%, rgb(157 176 167 / .12) 80%);
+  animation: breath 2s cubic-bezier(.3, .55, .2, 1) both;
+}
+@keyframes breath {
+  from { opacity: 1; }
+  to   { opacity: 0; visibility: hidden; }
+}
+
+/* ---------- the walk ---------- */
+
+.walk {
+  position: relative;
+  z-index: 3;
+  height: calc((var(--total) + 1) * 100vh);
+}
+.stage {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+  perspective: var(--persp);
+  perspective-origin: 50% var(--eye);
+  --cam: calc(var(--walk) * var(--total));
+}
+
+/* perspective projects only the children of .stage, so everything between the stage and a station
+   keeps the 3D context open and is sized like the stage (preserve-3d makes them containing blocks) */
+.stage main,
+.projects-section,
+.projects {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+}
+
+.station {
+  position: absolute;
+  --d: calc(var(--at) - var(--cam));
+  --dp: max(var(--d), 0);
+  --dn: max(calc(-1 * var(--d)), 0);
+  --veil: calc(1 / (1 + .7 * var(--dp) + .35 * var(--dp) * var(--dp)));
+  --pass: clamp(0, 1 - var(--dn) / .7, 1);
+  --blur: calc(min(max(var(--dp) - .15, 0) * 2.2, 6) + min(var(--dn), 1) * 5);
+  transform: translateZ(calc(var(--d) * -1 * var(--depth)));
+  opacity: calc(var(--veil) * var(--pass));
+  filter: blur(calc(var(--blur) * 1px));
+}
+.station.far { pointer-events: none; }
+
+/* a soft shadow in the fog behind each station, so text stays readable where the fog is dense */
+.station::before {
+  content: "";
+  position: absolute;
+  inset: -22% -16%;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(ellipse at 50% 50%, rgb(14 21 18 / .55), rgb(14 21 18 / .25) 45%, transparent 70%);
+}
+
+/* header */
+.top {
+  position: absolute;
+  z-index: 100;
+  top: 0; left: 0; right: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 1.5rem 2.2rem;
+  font-size: .92rem;
+  animation: appear .8s ease-out 1.3s backwards;
+}
+.top a {
+  color: var(--nebel);
+  text-decoration: none;
+}
+.top a:hover,
+.top a:focus-visible {
+  color: var(--milch);
+  text-decoration: underline;
+  text-decoration-color: var(--bollen);
+  text-decoration-thickness: 1px;
+  text-underline-offset: .22em;
+}
+.top nav { display: flex; gap: 1.6rem; }
+
+@keyframes appear {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* hero */
+.hero {
+  left: 0; right: 0;
+  top: 57%;
+  translate: 0 -50%;
+  text-align: center;
+  padding: 0 6vw;
+  z-index: 60;
+}
+.hero::before { inset: -40% -10%; }
+.name {
+  margin: 0;
+  font-family: var(--serif);
+  font-weight: 400;
+  font-variation-settings: "opsz" 96;
+  font-size: clamp(4.6rem, 15vw, 15rem);
+  line-height: 1;
+  letter-spacing: -.01em;
+  animation: resolve 1.4s cubic-bezier(.16, .84, .26, 1) both;
+}
+.js:not(.ready) .name,
+.js:not(.ready) .bio,
+.js:not(.ready) .where { animation-play-state: paused; }
+.name .i { position: relative; }
+.name .dot {
+  position: absolute;
+  left: 50%;
+  top: .445em;
+  width: .13em; height: .13em;
+  margin-left: -.065em;
+  border-radius: 50%;
+  background: var(--bollen);
+}
+@keyframes resolve {
+  from { filter: blur(18px); opacity: .08; letter-spacing: .16em; }
+  to   { filter: blur(0);    opacity: 1;   letter-spacing: -.01em; }
+}
+.bio {
+  margin: 1.3rem 0 0;
+  font-size: clamp(1.1rem, 1.5vw, 1.3rem);
+  animation: soften 1s cubic-bezier(.16, .84, .26, 1) .55s both;
+}
+.where {
+  margin: .4rem 0 0;
+  color: var(--nebel);
+  font-size: .95rem;
+  animation: soften 1s cubic-bezier(.16, .84, .26, 1) .8s both;
+}
+@keyframes soften {
+  from { opacity: 0; filter: blur(8px); }
+  to   { opacity: 1; filter: blur(0); }
+}
+
+/* signpost and projects */
+h2 {
+  margin: 0;
+  font-family: var(--serif);
+  font-style: italic;
+  font-weight: 400;
+  font-variation-settings: "opsz" 96;
+  font-size: clamp(1.35rem, 1.8vw, 1.7rem);
+  line-height: 1.2;
+  letter-spacing: 0;
+}
+.signpost {
+  left: 50%;
+  top: 19%;
+  translate: -50% 0;
+  white-space: nowrap;
+  z-index: 55;
+}
+.projects {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.proj {
+  top: calc(24% + var(--dy, 0) * 1%);
+  width: min(34ch, 40%);
+}
+.proj.l { left: 11%; }
+.proj.r { right: 11%; }
+.proj h3 {
+  margin: 0 0 .45rem;
+  font-family: var(--serif);
+  font-weight: 400;
+  font-variation-settings: "opsz" 96;
+  font-size: clamp(1.9rem, 2.6vw, 2.5rem);
+  line-height: 1.05;
+  letter-spacing: -.005em;
+}
+.proj h3 a {
+  text-decoration: none;
+}
+.proj h3 a:hover {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-decoration-color: var(--bollen);
+  text-underline-offset: .12em;
+}
+.proj .desc { margin: 0; }
+.proj .meta {
+  margin: .55rem 0 0;
+  display: flex;
+  gap: 1.2rem;
+  color: var(--nebel);
+  font-size: .88rem;
+}
+
+/* the clearing */
+.about {
+  left: 11%;
+  top: 26%;
+  width: min(44ch, 40%);
+  z-index: 20;
+}
+.about h2, .links h2 { margin-bottom: .8rem; }
+.about p { margin: 0; }
+.links {
+  right: 11%;
+  top: 26%;
+  width: min(30ch, 30%);
+  z-index: 20;
+}
+.links ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: 1.1rem;
+  line-height: 2;
+}
+.copy {
+  margin-left: .7rem;
+  padding: .1em .45em;
+  border: 0;
+  border-radius: 2px;
+  background: none;
+  color: var(--nebel);
+  font: inherit;
+  font-size: .82rem;
+  text-decoration: underline dotted;
+  text-underline-offset: .2em;
+  cursor: pointer;
+  transition: color .12s;
+}
+.copy:hover { color: var(--milch); text-decoration-color: var(--bollen); }
+.foot {
+  left: 50%;
+  bottom: 6%;
+  translate: -50% 0;
+  display: flex;
+  gap: 1.4rem;
+  color: var(--nebel);
+  font-size: .86rem;
+  white-space: nowrap;
+  z-index: 20;
+}
+
+/* ---------- phones ---------- */
+@media (max-width: 720px) {
+  :root { --persp: 800px; --depth: 620px; --eye: 66%; }
+  .top { padding: 1.1rem 1.25rem; font-size: .88rem; }
+  .top nav { gap: 1.1rem; }
+  .hero { top: 58%; padding: 0 4vw; }
+  .name { font-size: clamp(4.4rem, 22vw, 7.5rem); }
+  .bio { font-size: 1.1rem; }
+  .signpost { top: 15%; }
+  .proj { top: calc(17% + var(--dy, 0) * .6%); width: 82%; }
+  .proj.l { left: 6%; }
+  .proj.r { left: 12%; right: auto; }
+  .about { left: 7%; top: 13%; width: 86%; }
+  .links { left: 7%; right: auto; top: 53%; width: 86%; }
+  .foot { bottom: 3.5%; }
+}
+
+/* ---------- reduced motion: a quiet flowing page with the same placement; depth stays static ---------- */
+@media (prefers-reduced-motion: reduce) {
+  body { animation: none; }
+  .breath { display: none; }
+  .name, .bio, .where, .top { animation: none; }
+  .js:not(.ready) .name, .js:not(.ready) .bio, .js:not(.ready) .where { animation-play-state: running; }
+  .walk { height: auto; }
+  .stage {
+    position: static;
+    height: auto;
+    overflow: visible;
+    perspective: none;
+    padding: 6rem 0 3rem;
+  }
+  .top { position: fixed; background: linear-gradient(180deg, rgb(14 21 18 / .92), rgb(14 21 18 / 0)); }
+  .stage main, .projects-section, .projects { position: static; inset: auto; transform-style: flat; }
+  .station {
+    position: relative;
+    inset: auto;
+    translate: none;
+    transform: none;
+    opacity: 1;
+    filter: none;
+    width: auto;
+    pointer-events: auto;
+  }
+  .station::before { display: none; }
+  .hero { padding: 14vh 6vw 16vh; }
+  .signpost { text-align: center; margin: 0 0 3rem; white-space: normal; }
+  .projects { padding: 0 6vw; display: grid; grid-template-columns: 1fr 1fr; gap: 3rem 4rem; }
+  .proj { max-width: 36ch; }
+  .proj.l { grid-column: 1; }
+  .proj.r { grid-column: 2; justify-self: end; }
+  .about { margin: 7rem 6vw 0; max-width: 46ch; }
+  .links { margin: 4rem 6vw 0 auto; max-width: 30ch; }
+  .foot { margin: 5rem auto 0; justify-content: center; }
+  @media (max-width: 720px) {
+    .projects { grid-template-columns: 1fr; }
+    .proj.r { grid-column: 1; justify-self: start; margin-left: 6vw; }
+    .links { margin: 3rem 6vw 0; }
+  }
+}

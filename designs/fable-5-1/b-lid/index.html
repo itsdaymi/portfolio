@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>daymi — building stuff, i guess</title>
+  <meta name="description" content="daniel kistner, developer in baden-württemberg. builds tools for coding agents and a few cli things. building stuff, i guess.">
+  <meta property="og:title" content="daymi — building stuff, i guess">
+  <meta property="og:description" content="daniel kistner, developer in baden-württemberg. builds tools for coding agents and a few cli things.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://daymi.dev/">
+  <meta property="og:site_name" content="daymi.dev">
+  <meta property="og:locale" content="en_US">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:site" content="@itsdaymi">
+  <meta name="theme-color" content="#33363C">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cg transform='rotate(-8 32 32)'%3E%3Crect x='7' y='7' width='50' height='50' rx='11' fill='%23fff'/%3E%3Crect x='10.5' y='10.5' width='43' height='43' rx='8.5' fill='%23FFD23F'/%3E%3Ctext x='32' y='45.5' font-family='Arial Black,Impact,sans-serif' font-weight='900' font-size='36' text-anchor='middle' fill='%231A1A1A'%3Ed%3C/text%3E%3C/g%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Gabarito:wght@400..900&family=Permanent+Marker&family=Rubik+Mono+One&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="lid" id="lid">
+  <div class="lid-light" aria-hidden="true"></div>
+  <div class="lid-logo" aria-hidden="true">d</div>
+
+  <header class="hero">
+    <h1 class="sticker sk-name" id="sk-name">
+      <svg class="name-svg" viewBox="0 0 640 190" aria-hidden="true" focusable="false">
+        <text class="name-text" x="320" y="150" text-anchor="middle">daymi</text>
+      </svg>
+      <span class="visually-hidden">daymi</span>
+    </h1>
+
+    <p class="sticker sk-tape" id="sk-tape"><span>building stuff, i guess</span></p>
+
+    <p class="sticker sk-badge" id="sk-badge">
+      <svg viewBox="0 0 160 160" aria-hidden="true" focusable="false">
+        <defs>
+          <path id="arc-top" d="M 25 80 A 55 55 0 0 1 135 80"/>
+          <path id="arc-bot" d="M 19 80 A 61 61 0 0 0 141 80"/>
+        </defs>
+        <circle class="badge-bg" cx="80" cy="80" r="78"/>
+        <circle class="badge-ring" cx="80" cy="80" r="70"/>
+        <text class="badge-arc"><textPath href="#arc-top" startOffset="50%" text-anchor="middle">daniel kistner</textPath></text>
+        <text class="badge-arc"><textPath href="#arc-bot" startOffset="50%" text-anchor="middle">baden-württemberg</textPath></text>
+        <text class="badge-mid" x="80" y="76" text-anchor="middle">stuttgart</text>
+        <text class="badge-mid" x="80" y="93" text-anchor="middle">region</text>
+        <text class="badge-tz" x="80" y="112" text-anchor="middle">Europe/Berlin</text>
+      </svg>
+      <span class="visually-hidden">Daniel Kistner, Baden-Württemberg, Stuttgart region, timezone Europe/Berlin</span>
+    </p>
+  </header>
+
+  <main>
+    <section class="projects" aria-labelledby="projects-h">
+      <h2 id="projects-h" class="visually-hidden">projects</h2>
+      <ul class="sk-slots" id="sk-slots" role="list"></ul>
+      <ul class="sk-more" id="sk-more" role="list" hidden></ul>
+    </section>
+
+    <section class="about" aria-labelledby="about-h">
+      <article class="sticker sk-about" id="sk-about">
+        <h2 id="about-h">about</h2>
+        <p>i'm daniel, a developer in baden-württemberg, stuttgart region. days are at frei GmbH. the rest of the time i build tools for coding agents, and most of it ends up on github.</p>
+        <span class="peel" aria-hidden="true"></span>
+      </article>
+    </section>
+
+    <nav class="links" aria-labelledby="links-h">
+      <h2 id="links-h" class="visually-hidden">links</h2>
+      <a class="sticker sk-round sk-gh" id="sk-gh" href="https://github.com/itsdaymi" draggable="false">github<small>/itsdaymi</small></a>
+      <a class="sticker sk-round sk-x" id="sk-x" href="https://x.com/itsdaymi" draggable="false"><span class="x-glyph" aria-hidden="true">x</span><small>@itsdaymi</small><span class="visually-hidden">on x</span></a>
+      <button class="sticker sk-barcode" id="sk-mail" type="button" aria-label="copy email address daniel@daymi.dev">
+        <svg class="barcode" id="barcode" viewBox="0 0 200 40" preserveAspectRatio="none" aria-hidden="true" focusable="false"></svg>
+        <span class="mail-text" id="mail-text" aria-live="polite">daniel@daymi.dev</span>
+      </button>
+    </nav>
+  </main>
+
+  <footer class="lid-foot">
+    <button class="etched etched-btn" id="reset" type="button" hidden>put them back</button>
+    <p class="etched">daymi.dev <span id="year">2026</span></p>
+  </footer>
+</div>
+<script src="script.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>daymi — building stuff, i guess</title>
+  <meta name="description" content="daniel kistner, daymi. studies applied computer science at hochschule offenburg, builds things with and for ai agents, lives in the black forest.">
+  <meta property="og:title" content="daymi — building stuff, i guess">
+  <meta property="og:description" content="daniel kistner, daymi. applied computer science student in the black forest, building things with and for ai agents.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://daymi.dev/">
+  <meta property="og:site_name" content="daymi.dev">
+  <meta name="theme-color" content="#0E1512">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230E1512'/%3E%3Crect x='14.2' y='13' width='3.6' height='12.5' fill='%23DCE6E0'/%3E%3Ccircle cx='16' cy='8.4' r='2.7' fill='%23D2231F'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..600;1,6..96,400..600&family=Schibsted+Grotesk:ital,wght@0,400..600;1,400..600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script>document.documentElement.classList.add('js')</script>
+</head>
+<body>
+
+  <!-- the valley: veils, fir layers and fog sheets. presentation only -->
+  <div class="backdrop" aria-hidden="true">
+    <div class="veil cold"></div>
+    <div class="veil warm"></div>
+  </div>
+  <div class="scene" id="scene" aria-hidden="true"></div>
+  <div class="breath" aria-hidden="true"></div>
+
+  <!-- the walk: a tall scroller whose only job is distance -->
+  <div class="walk" id="walk">
+    <div class="stage">
+
+      <header class="top">
+        <a class="home" href="https://daymi.dev/">daymi.dev</a>
+        <nav aria-label="sections">
+          <a href="#projects" data-go="projects">projects</a>
+          <a href="#about" data-go="about">about</a>
+          <a href="#links" data-go="links">links</a>
+        </nav>
+      </header>
+
+      <main id="main">
+        <section class="station hero" style="--at: 0" aria-labelledby="name">
+          <h1 class="name" id="name">
+            <span aria-hidden="true">daym<span class="i">ı<b class="dot"></b></span></span>
+            <span class="sr">daymi</span>
+          </h1>
+          <p class="bio">building stuff, i guess</p>
+          <p class="where">daniel kistner, somewhere in the black forest</p>
+        </section>
+
+        <section class="projects-section" id="projects" aria-labelledby="projects-h">
+          <h2 class="station signpost" id="projects-h" style="--at: 1">things i made</h2>
+          <ul class="projects" id="project-list"></ul>
+        </section>
+
+        <section class="station about" id="about" aria-labelledby="about-h">
+          <h2 id="about-h">about</h2>
+          <p>i'm daniel. i live in the black forest, which is as beautiful as advertised, and study applied computer science at hochschule offenburg. on the side i'm a working student at frei gmbh. most of what i build lately is with agents, or for them: skills, rules, the small things that make a codebase easier for a coding agent to work in.</p>
+        </section>
+
+        <section class="station links" id="links" aria-labelledby="links-h">
+          <h2 id="links-h">links</h2>
+          <ul>
+            <li><a href="https://github.com/itsdaymi">github</a></li>
+            <li><a href="https://x.com/itsdaymi">x</a></li>
+            <li class="mail">
+              <a href="mailto:daniel@daymi.dev">daniel@daymi.dev</a>
+              <button type="button" class="copy" data-copy="daniel@daymi.dev" aria-live="polite">copy</button>
+            </li>
+          </ul>
+        </section>
+      </main>
+
+      <footer class="station foot">
+        <span>daymi.dev</span>
+        <span>2026</span>
+      </footer>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>daymi — building stuff, i guess</title>
+  <meta name="description" content="daniel kistner, developer in the stuttgart region. building stuff, i guess. tools for coding agents and other things. this page is lit by the sky over stuttgart right now.">
+  <meta id="theme-color" name="theme-color" content="#CFD9E6">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://daymi.dev/">
+  <meta property="og:title" content="daymi — building stuff, i guess">
+  <meta property="og:description" content="daniel kistner, developer in the stuttgart region. tools for coding agents and other things. the page is lit by the sky over stuttgart right now.">
+  <meta property="og:site_name" content="daymi.dev">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:site" content="@itsdaymi">
+  <script>
+    /* before the stylesheet: pick the right side of the day so nothing flashes, and hold the name until the script runs */
+    (function () {
+      try {
+        var h = +new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Berlin', hour: '2-digit', hourCycle: 'h23' }).format(new Date());
+        document.documentElement.dataset.side = (h < 7 || h >= 19) ? 'dark' : 'light';
+        document.documentElement.className = 'is-loading';
+        setTimeout(function () { document.documentElement.classList.remove('is-loading'); }, 1500);
+      } catch (e) {}
+    })();
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,300..600,0..100,0..1;1,9..144,300..600,0..100,0..1&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <link id="favicon" rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23CFD9E6'/%3E%3Ccircle cx='32' cy='32' r='12' fill='%233F5878'/%3E%3C/svg%3E">
+</head>
+<body>
+  <div class="sky" aria-hidden="true"></div>
+
+  <header class="hero">
+    <div class="disc-layer" aria-hidden="true">
+      <svg class="disc sun" viewBox="-100 -100 200 200" focusable="false">
+        <defs>
+          <radialGradient id="sun-glow">
+            <stop class="glow-stop" offset="0" stop-opacity=".55"/>
+            <stop class="glow-stop" offset=".22" stop-opacity=".22"/>
+            <stop class="glow-stop" offset=".55" stop-opacity=".07"/>
+            <stop class="glow-stop" offset="1" stop-opacity="0"/>
+          </radialGradient>
+        </defs>
+        <circle r="100" fill="url(#sun-glow)"/>
+        <circle class="sun-core" r="5.5"/>
+      </svg>
+      <svg class="disc moon" viewBox="-100 -100 200 200" focusable="false">
+        <defs>
+          <radialGradient id="moon-glow">
+            <stop class="moon-stop" offset="0" stop-opacity=".14"/>
+            <stop class="moon-stop" offset=".4" stop-opacity=".04"/>
+            <stop class="moon-stop" offset="1" stop-opacity="0"/>
+          </radialGradient>
+        </defs>
+        <circle r="100" fill="url(#moon-glow)"/>
+        <circle class="moon-dark" r="8"/>
+        <path id="moon-lit" class="moon-lit" d=""/>
+      </svg>
+    </div>
+
+    <div class="col">
+      <h1 class="name">daymi</h1>
+      <p class="bio">building stuff, i guess.</p>
+
+      <p class="live">
+        <span id="live-when">it's <time id="live-time" datetime="12:00">12:00</time> in stuttgart.</span>
+        <span id="live-what">daymi is probably building stuff.</span>
+      </p>
+
+      <div class="scrub">
+        <label for="scrub" class="visually-hidden">time of day in stuttgart. drag or use the arrow keys to light the page for another hour.</label>
+        <input id="scrub" type="range" min="0" max="1439" step="5" value="720" aria-valuetext="12:00 in stuttgart">
+        <svg viewBox="0 0 1440 120" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+          <line class="horizon" x1="0" y1="60" x2="1440" y2="60"/>
+          <path id="arc-night" class="arc-night" d=""/>
+          <path id="arc-day" class="arc-day" d=""/>
+          <path id="dot-ring" class="dot-ring" d="M720,60h0"/>
+          <path id="dot" class="dot" d="M720,60h0"/>
+        </svg>
+      </div>
+      <div class="readout">
+        <p id="readout">sun above the horizon.</p>
+        <span id="hint" class="hint">drag the sun.</span>
+        <button id="now" class="now" type="button" hidden>now</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="section" aria-labelledby="h-projects">
+      <div class="col">
+        <h2 id="h-projects">projects</h2>
+        <ul id="projects" class="projects">
+          <noscript><li>the list is drawn with javascript. everything is on <a href="https://github.com/itsdaymi">github</a> too.</li></noscript>
+        </ul>
+      </div>
+    </section>
+
+    <section class="section about" aria-labelledby="h-about">
+      <div class="col">
+        <h2 id="h-about">about</h2>
+        <p>i'm daniel. i live in baden-württemberg and work at frei gmbh. i build tools for coding agents, among other things. some of them are above.</p>
+      </div>
+    </section>
+
+    <section class="section" aria-labelledby="h-links">
+      <div class="col">
+        <h2 id="h-links">links</h2>
+        <ul class="links">
+          <li><span class="label">github</span><span><a href="https://github.com/itsdaymi" rel="me noopener">itsdaymi</a></span></li>
+          <li><span class="label">x</span><span><a href="https://x.com/itsdaymi" rel="me noopener">itsdaymi</a></span></li>
+          <li><span class="label">mail</span><span><a href="mailto:daniel@daymi.dev">daniel@daymi.dev</a><button id="copy" class="copy" type="button" aria-label="copy the email address">copy</button></span></li>
+        </ul>
+        <p id="status" class="visually-hidden" role="status" aria-live="polite"></p>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="col">
+      <span>daymi.dev</span>
+      <span id="year">2026</span>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>

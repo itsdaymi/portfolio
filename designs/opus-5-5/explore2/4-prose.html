@@ -1,0 +1,638 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>daymi</title>
+<style>
+  @font-face { font-family: "Newsreader"; src: url("../fonts/newsreader-opsz.woff2") format("woff2"); font-weight: 200 800; font-style: normal; font-display: block; }
+  @font-face { font-family: "Newsreader"; src: url("../fonts/newsreader-opsz-italic.woff2") format("woff2"); font-weight: 200 800; font-style: italic; font-display: block; }
+  @font-face { font-family: "Plex Mono"; src: url("../fonts/ibm-plex-mono-400.woff2") format("woff2"); font-weight: 400; font-display: block; }
+  @font-face { font-family: "Plex Mono"; src: url("../fonts/ibm-plex-mono-600.woff2") format("woff2"); font-weight: 600; font-display: block; }
+
+  @property --draw { syntax: "<number>"; inherits: false; initial-value: 0; }
+
+  :root {
+    --paper: #fbfaf7;
+    --ink: #1a1a1a;
+    --faded: #8c8a85;
+    --err: #c8372d;
+    --warn: #b98500;
+    --info: #3b6fc4;
+    --hair: rgba(26, 26, 26, 0.14);
+    --side: clamp(20px, 9vw, 150px);
+    --size: clamp(25px, 2.2vw + 17px, 52px);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+  html { background: var(--paper); color: var(--ink); -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    overflow-x: hidden;
+    font-family: "Newsreader", Georgia, serif;
+    font-optical-sizing: auto;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  ::selection { background: var(--ink); color: var(--paper); }
+  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+  .page {
+    position: relative;
+    min-height: 100vh;
+    min-height: 100svh;
+    display: flex;
+    flex-direction: column;
+    padding: clamp(64px, 16vh, 156px) var(--side) 28px;
+  }
+  .loading .page { opacity: 0; }
+  .page { transition: opacity 0.4s; }
+
+  /* ---------- the paragraph ---------- */
+
+  .prose {
+    margin: 0;
+    max-width: 21.5em;
+    font-size: var(--size);
+    line-height: 1.24;
+    font-weight: 370;
+    letter-spacing: -0.006em;
+    text-wrap: pretty;
+  }
+  .end { white-space: nowrap; }
+
+  .ann {
+    cursor: pointer;
+    border-radius: 2px;
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
+    transition: background-color 0.15s, text-decoration-color 0.35s;
+    outline-offset: 2px;
+  }
+  .ann.info {
+    text-decoration-line: underline;
+    text-decoration-style: dotted;
+    text-decoration-thickness: max(1.5px, 0.05em);
+    text-underline-offset: 0.2em;
+    text-decoration-color: rgba(59, 111, 196, 0.45);
+  }
+  .pre .ann.info { text-decoration-color: transparent; }
+  .ann.info:hover, .ann.info.open { text-decoration-color: var(--info); text-decoration-style: solid; text-decoration-thickness: max(1px, 0.03em); }
+  .ann.open { background: rgba(59, 111, 196, 0.08); }
+  .ann:focus { outline: none; }
+  .ann:focus-visible { outline: 2px solid var(--info); }
+
+  /* squiggles: drawn left to right, retracted the other way */
+  .dg { position: relative; }
+  .dg::after {
+    content: "";
+    position: absolute;
+    left: -0.02em;
+    right: -0.02em;
+    top: calc(100% - 0.04em);
+    height: 0.17em;
+    background: var(--sq) repeat-x left center / auto 100%;
+    clip-path: inset(-2px calc((1 - var(--draw)) * 100%) -2px 0);
+    transition: --draw 0.5s cubic-bezier(0.3, 0.7, 0.2, 1);
+    pointer-events: none;
+  }
+  .dg.drawn::after { --draw: 1; }
+  .dg.retract::after { transition-duration: 0.16s; transition-timing-function: ease-in; }
+  .dg.err { --sq: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 6'%3E%3Cpath d='M-6 3Q-3 5.6 0 3T6 3T12 3T18 3' fill='none' stroke='%23c8372d' stroke-width='1.25'/%3E%3C/svg%3E"); }
+  .dg.warn { --sq: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 6'%3E%3Cpath d='M-6 3Q-3 5.6 0 3T6 3T12 3T18 3' fill='none' stroke='%23b98500' stroke-width='1.25'/%3E%3C/svg%3E"); }
+  .dg.err.open { background: rgba(200, 55, 45, 0.07); }
+  .dg.warn.open { background: rgba(185, 133, 0, 0.08); }
+  .dg.err:focus-visible { outline-color: var(--err); }
+  .dg.warn:focus-visible { outline-color: var(--warn); }
+
+  /* letters while an edit is being made */
+  .l { display: inline-block; white-space: pre; clip-path: inset(-50% 0 -50% 0); vertical-align: baseline; }
+
+  /* ---------- the quickinfo card ---------- */
+
+  .card {
+    position: absolute;
+    z-index: 10;
+    display: block;
+    width: max-content;
+    max-width: min(440px, calc(100vw - 24px));
+    background: var(--paper);
+    border: 1px solid var(--hair);
+    border-radius: 3px;
+    box-shadow: 0 12px 24px -18px rgba(26, 26, 26, 0.4);
+    font-size: 17px;
+    line-height: 1.42;
+    font-weight: 400;
+    letter-spacing: 0;
+    white-space: normal;
+    text-wrap: wrap;
+    color: var(--ink);
+    transform-origin: var(--ox, 0) var(--oy, 0);
+    opacity: 0;
+    cursor: auto;
+  }
+  .card > span { display: block; padding: 0 14px; }
+  .card .sig, .card .msg, .card .row { font-family: "Plex Mono", ui-monospace, monospace; }
+  .card .sig { padding-top: 9px; padding-bottom: 9px; font-size: 13.5px; line-height: 1.5; }
+  .card .msg { margin-top: -3px; padding-bottom: 11px; font-size: 13.5px; line-height: 1.5; }
+  .card .doc { border-top: 1px solid var(--hair); padding-top: 8px; padding-bottom: 11px; color: #3b3a37; }
+  .card .row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 4px 16px;
+    border-top: 1px solid var(--hair);
+    padding-top: 7px;
+    padding-bottom: 8px;
+    font-size: 12.5px;
+  }
+  .card .k { color: var(--faded); }
+  .card .t { color: var(--info); }
+  .card .n { font-weight: 600; }
+  .card .lvl { font-weight: 600; }
+  .card.error .lvl { color: var(--err); }
+  .card.warn .lvl { color: var(--warn); }
+  .card .hint { margin-left: auto; color: var(--faded); }
+  .card a, .card .fix {
+    color: var(--ink);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+    text-decoration-color: var(--hair);
+  }
+  .card a:hover, .card .fix:hover { text-decoration-color: currentColor; }
+  .card .fix {
+    font: inherit;
+    padding: 0;
+    border: 0;
+    background: none;
+    cursor: pointer;
+  }
+  .card a:focus-visible, .card .fix:focus-visible { outline: 2px solid var(--info); outline-offset: 2px; }
+
+  /* ---------- foot ---------- */
+
+  .foot {
+    margin-top: auto;
+    padding-top: 56px;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 24px;
+    font-size: 15px;
+    color: var(--faded);
+  }
+  .problems {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    padding: 4px 0;
+    margin: -4px 0;
+    border: 0;
+    background: none;
+    font: inherit;
+    color: inherit;
+    cursor: pointer;
+  }
+  .problems:focus-visible { outline: 2px solid var(--info); outline-offset: 3px; border-radius: 2px; }
+  .problems svg { width: 20px; height: 8px; overflow: visible; }
+  .problems path { fill: none; stroke: currentColor; stroke-width: 1.25; }
+  .problems.err svg { color: var(--err); }
+  .problems.warn svg { color: var(--warn); }
+  .problems:hover .pc { color: var(--ink); }
+
+  @media (max-width: 640px) {
+    .prose { line-height: 1.3; letter-spacing: 0; font-weight: 380; }
+    .card { font-size: 16px; }
+    .card .sig, .card .msg { font-size: 12.5px; }
+    .card .row { font-size: 12px; }
+    .foot { padding-top: 48px; font-size: 14px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .dg::after, .ann, .page { transition: none !important; }
+  }
+</style>
+</head>
+<body class="loading">
+<main class="page" id="page">
+  <h1 class="sr">daymi</h1>
+  <p class="prose pre" id="prose"></p>
+  <footer class="foot">
+    <button class="problems" id="problems" type="button" aria-label="problems">
+      <svg viewBox="0 0 20 8" aria-hidden="true"><path id="wave" d="M0 4 L20 4"/></svg>
+      <span class="pc" aria-live="polite">checking</span>
+    </button>
+    <span>© 2026 daniel kistner</span>
+  </footer>
+</main>
+
+<script src="data.js"></script>
+<script>
+(() => {
+  const D = window.DATA;
+  const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const fine = matchMedia('(hover: hover) and (pointer: fine)').matches;
+  const mac = /mac/i.test(navigator.platform);
+  const mod = mac ? 'cmd' : 'ctrl';
+  const $ = (s) => document.querySelector(s);
+  const page = $('#page'), prose = $('#prose'), problems = $('#problems');
+  const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const bare = (u) => u.replace(/^https?:\/\/(www\.)?/, '').replace(/^mailto:/, '');
+
+  // ---------- springs: one loop for everything that moves ----------
+
+  const springs = new Set();
+  let raf = 0, last = 0;
+  function tick(t) {
+    const dt = Math.min(0.034, (t - last) / 1000 || 0.016);
+    last = t;
+    for (const s of springs) {
+      if (s.wait > 0) { s.wait -= dt; continue; }
+      const h = dt / 4;
+      for (let i = 0; i < 4; i++) {
+        s.v += (-s.k * (s.x - s.to) - s.c * s.v) * h;
+        s.x += s.v * h;
+      }
+      if (Math.abs(s.x - s.to) < s.eps && Math.abs(s.v) < s.eps * 10) {
+        s.x = s.to;
+        springs.delete(s);
+        s.step(s.x);
+        if (s.done) s.done();
+      } else s.step(s.x);
+    }
+    raf = springs.size ? requestAnimationFrame(tick) : 0;
+  }
+  function spring(s) {
+    s.v = s.v || 0;
+    s.eps = s.eps || 0.002;
+    if (calm) { s.x = s.to; s.step(s.x); if (s.done) s.done(); return s; }
+    springs.add(s);
+    if (!raf) { last = performance.now(); raf = requestAnimationFrame(tick); }
+    return s;
+  }
+  const later = (ms, fn) => setTimeout(fn, calm ? Math.min(ms, 400) : ms);
+
+  // ---------- the paragraph, written from the data ----------
+
+  const notes = {};
+  let uid = 0;
+  function ann(text, note, id) {
+    id = id || 'w' + (++uid);
+    notes[id] = note;
+    return `<span class="ann info live" id="${id}" role="button" tabindex="0" aria-expanded="false">${esc(text)}</span>`;
+  }
+  const project = (p) => ann(p.name, {
+    head: `<span class="k">(project)</span> <span class="n">${esc(p.name)}</span><span class="k">:</span> <span class="t">${p.year}</span>`,
+    doc: p.blurb,
+    href: p.url,
+  });
+  const list = (a) => a.map((x, i) => (i === 0 ? '' : i === a.length - 1 ? ' and ' : ', ') + x).join('');
+  const link = (label) => D.links.find((l) => l.label === label || (label === '@' && l.href.startsWith('mailto')));
+  const gh = link('github'), x = link('x'), mail = link('@');
+  const recent = D.projects.slice(0, 3).map(project);
+  const older = D.projects.slice(3).map(project);
+
+  prose.innerHTML =
+    `i'm ${esc(D.full)}, ` +
+    ann('daymi', {
+      head: `<span class="k">type</span> <span class="n">daymi</span> <span class="k">=</span> <span class="t">"${esc(D.full)}"</span>`,
+      doc: 'lowercase, always.',
+    }) +
+    ` on most of the internet. i&nbsp;study applied computer science at ` +
+    ann('hochschule\u00a0offenburg', {
+      head: `<span class="k">(place)</span> <span class="n">hochschule offenburg</span>`,
+      doc: 'applied computer science, at the edge of the black forest.',
+      href: 'https://www.hs-offenburg.de',
+    }) +
+    ` and work at ` +
+    ann('frei\u00a0gmbh', {
+      head: `<span class="k">(org)</span> <span class="n">frei gmbh</span>`,
+      doc: 'working student, next to the degree.',
+    }) +
+    ` as a working student. the rest of the time i&nbsp;build things with ai agents, and things for them. ` +
+    (recent.length ? `lately that's ${list(recent)}` : '') +
+    (older.length ? `; before that, ${list(older)}. ` : '. ') +
+    `the code is on ` +
+    ann(gh.label, { head: `<span class="k">(link)</span> ${esc(bare(gh.href))}`, doc: 'repositories, issues, the occasional abandoned idea.', href: gh.href }) +
+    `, the occasional post is on ` +
+    ann(x.label, { head: `<span class="k">(link)</span> ${esc(bare(x.href))}`, doc: 'not very often.', href: x.href }) +
+    `, and the inbox is ` +
+    ann(mail.label, { head: `<span class="k">(mailto)</span> ${esc(bare(mail.href))}`, doc: 'the reliable way to reach me.', href: mail.href, verb: 'write to' }) +
+    `. <span class="end"><span class="dg warn" id="stuff">building stuff</span><span class="hedge" id="hedge"></span>.</span>`;
+
+  const HEDGE = ', i guess';
+  const hedge = $('#hedge'), stuff = $('#stuff');
+  const guessHTML = `, <span class="ann dg err live" id="guess" role="button" tabindex="0" aria-expanded="false">i guess</span>`;
+  hedge.innerHTML = guessHTML;
+
+  notes.guess = {
+    kind: 'error',
+    code: 'ts(2322)',
+    msg: `type <span class="t">'"i guess"'</span> is not assignable to type <span class="t">'Confidence'</span>.`,
+    fixes: [{ label: 'remove hedge', run: removeHedge }],
+  };
+  notes.stuff = {
+    kind: 'warn',
+    code: 'ts(6133)',
+    msg: `<span class="t">'modesty'</span> is declared but its value is never read.`,
+    fixes: [{ label: 'restore', run: restoreHedge }],
+  };
+
+  // ---------- the problems count ----------
+
+  const wave = $('#wave');
+  let amp = 0, ampS = null;
+  const drawWave = (a) => wave.setAttribute('d', `M0 4Q2.5 ${4 - 3 * a} 5 4T10 4T15 4T20 4`);
+  drawWave(0);
+  function setCount(kind) {
+    problems.className = 'problems ' + kind;
+    $('.pc').textContent = { err: '1 problem', warn: '1 problem', none: 'no problems', checking: 'checking' }[kind];
+    const to = kind === 'err' || kind === 'warn' ? 1 : 0;
+    if (ampS) springs.delete(ampS);
+    ampS = spring({ x: amp, v: 0, to, k: 260, c: 9, eps: 0.004, step: (a) => { amp = a; drawWave(a); } });
+  }
+  problems.addEventListener('click', () => {
+    const el = state === 'B' ? stuff : $('#guess');
+    if (!el || state === 'busy') return;
+    el.focus();
+    show(el, null, true);
+  });
+
+  // ---------- the card ----------
+
+  let open = null, hoverT = 0, leaveT = 0;
+
+  function render(n) {
+    let h = '';
+    if (n.kind) {
+      h += `<span class="sig"><span class="lvl">${n.kind === 'error' ? 'error' : 'warning'}</span> <span class="k">${n.code}</span></span>`;
+      h += `<span class="msg">${n.msg}</span>`;
+      h += `<span class="row"><span class="k">quick fix</span>` +
+        n.fixes.map((f, i) => `<button type="button" class="fix" data-i="${i}">${f.label}</button>`).join('') +
+        (fine ? `<span class="hint">${mod}+.</span>` : '') + `</span>`;
+    } else {
+      h += `<span class="sig">${n.head}</span>`;
+      if (n.doc) h += `<span class="doc">${esc(n.doc)}</span>`;
+      if (n.href) {
+        const ext = !n.href.startsWith('mailto');
+        h += `<span class="row"><a href="${n.href}"${ext ? ' target="_blank" rel="noopener"' : ''}>${n.verb || 'open'} ${esc(bare(n.href))}</a>` +
+          (fine ? `<span class="hint">${mod}+click</span>` : '') + `</span>`;
+      }
+    }
+    return h;
+  }
+
+  function place(card, el, pt) {
+    const rects = [...el.getClientRects()];
+    let r = rects[0];
+    if (pt && rects.length > 1) {
+      const d = (q) => Math.abs((q.top + q.bottom) / 2 - pt.y) + (pt.x < q.left ? q.left - pt.x : pt.x > q.right ? pt.x - q.right : 0);
+      r = rects.reduce((b, q) => (d(q) < d(b) ? q : b));
+    }
+    const pr = page.getBoundingClientRect();
+    const vw = document.documentElement.clientWidth, vh = innerHeight;
+    const cw = card.offsetWidth, ch = card.offsetHeight;
+    const gap = 9;
+    const below = r.bottom + gap + ch <= vh - 10 || r.top - gap - ch < 10;
+    const top = below ? r.bottom + gap : r.top - gap - ch;
+    const left = Math.max(12, Math.min(r.left - 15, vw - 12 - cw));
+    card.style.left = left - pr.left + 'px';
+    card.style.top = top - pr.top + 'px';
+    card.style.setProperty('--ox', Math.max(0, Math.min(cw, r.left + Math.min(r.width, 60) / 2 - left)) + 'px');
+    card.style.setProperty('--oy', below ? '0px' : ch + 'px');
+    card.dataset.below = below ? 1 : 0;
+  }
+
+  function show(el, pt, pinned) {
+    clearTimeout(hoverT);
+    clearTimeout(leaveT);
+    if (open && open.el === el) { if (pinned) open.pinned = true; return; }
+    if (open) hide(true);
+    const n = notes[el.id];
+    if (!n) return;
+    const card = document.createElement('span');
+    card.className = 'card ' + (n.kind || 'info');
+    card.id = 'card-' + el.id;
+    card.innerHTML = render(n);
+    el.after(card);
+    place(card, el, pt);
+    el.classList.add('open');
+    el.setAttribute('aria-expanded', 'true');
+    el.setAttribute('aria-describedby', card.id);
+    card.querySelectorAll('.fix').forEach((b) => b.addEventListener('click', () => n.fixes[+b.dataset.i].run(true)));
+    const down = card.dataset.below === '1' ? 1 : -1;
+    const o = { el, card, pinned: !!pinned, s: null };
+    o.s = spring({
+      x: 0, to: 1, k: 620, c: 30,
+      step: (v) => {
+        card.style.opacity = Math.min(1, v * 1.6);
+        card.style.transform = `translateY(${(1 - v) * -7 * down}px) scale(${0.965 + 0.035 * v})`;
+      },
+    });
+    open = o;
+  }
+
+  function hide(instant) {
+    if (!open) return;
+    const { el, card, s } = open;
+    open = null;
+    springs.delete(s);
+    el.classList.remove('open');
+    el.setAttribute('aria-expanded', 'false');
+    el.removeAttribute('aria-describedby');
+    if (instant || calm) { card.remove(); return; }
+    spring({
+      x: 1, to: 0, k: 900, c: 60, eps: 0.02,
+      step: (v) => { card.style.opacity = v; card.style.transform = `scale(${0.98 + 0.02 * v})`; },
+      done: () => card.remove(),
+    });
+  }
+
+  // mouse: hover opens, click pins, ctrl/cmd-click goes to the definition
+  document.addEventListener('pointerover', (e) => {
+    if (e.pointerType !== 'mouse') return;
+    const a = e.target.closest('.ann.live');
+    if (a) {
+      clearTimeout(leaveT);
+      if (!open || open.el !== a) {
+        clearTimeout(hoverT);
+        const pt = { x: e.clientX, y: e.clientY };
+        hoverT = setTimeout(() => show(a, pt), open ? 40 : 160);
+      }
+    } else if (e.target.closest('.card')) clearTimeout(leaveT);
+  });
+  document.addEventListener('pointerout', (e) => {
+    if (e.pointerType !== 'mouse') return;
+    const from = e.target.closest('.ann.live, .card');
+    const to = e.relatedTarget && e.relatedTarget.closest && e.relatedTarget.closest('.ann.live, .card');
+    if (from && !to) {
+      clearTimeout(hoverT);
+      if (open && !open.pinned && document.activeElement !== open.el) leaveT = setTimeout(() => hide(), 260);
+    }
+  });
+  document.addEventListener('click', (e) => {
+    const a = e.target.closest('.ann.live');
+    if (a) {
+      const n = notes[a.id];
+      if ((e.ctrlKey || e.metaKey) && n && n.href) { window.open(n.href, '_blank', 'noopener'); return; }
+      if (open && open.el === a && open.pinned) hide();
+      else show(a, { x: e.clientX, y: e.clientY }, true);
+      return;
+    }
+    if (open && !e.target.closest('.card')) hide();
+  });
+
+  // keyboard: focus shows, enter steps into the card, esc closes
+  document.addEventListener('focusin', (e) => {
+    const a = e.target.closest && e.target.closest('.ann.live');
+    if (a && (!open || open.el !== a)) show(a, null, false);
+  });
+  document.addEventListener('focusout', () => {
+    setTimeout(() => {
+      if (!open || open.pinned) return;
+      const f = document.activeElement;
+      if (f === open.el || open.card.contains(f)) return;
+      if (open.el.matches(':hover') || open.card.matches(':hover')) return;
+      hide();
+    }, 0);
+  });
+  document.addEventListener('keydown', (e) => {
+    const a = e.target.closest && e.target.closest('.ann.live');
+    if (a && (e.key === 'Enter' || e.key === ' ')) {
+      e.preventDefault();
+      if (!open || open.el !== a) show(a, null, true);
+      const first = open && open.card.querySelector('a, button');
+      if (first) first.focus();
+      return;
+    }
+    if (e.key === 'Escape' && open) {
+      const el = open.el;
+      hide();
+      el.focus({ preventScroll: true });
+      return;
+    }
+    if (e.key === '.' && (e.ctrlKey || e.metaKey)) {
+      const el = open ? open.el : a;
+      const n = el && notes[el.id];
+      if (n && n.fixes) { e.preventDefault(); n.fixes[0].run(true); }
+    }
+  });
+  addEventListener('resize', () => hide(true));
+
+  // ---------- quick fixes: real edits, made by hand ----------
+
+  let state = 'busy';
+
+  function letters(text) {
+    hedge.innerHTML = [...text].map((c) => `<span class="l" aria-hidden="true">${esc(c)}</span>`).join('');
+    return [...hedge.children].map((el) => ({ el, w: el.getBoundingClientRect().width }));
+  }
+
+  function removeHedge(fromKey) {
+    if (state !== 'A') return;
+    state = 'busy';
+    hide();
+    const guess = $('#guess');
+    guess.classList.add('retract');
+    guess.classList.remove('drawn', 'live');
+    setCount('checking');
+    later(170, () => {
+      const L = letters(HEDGE);
+      L.forEach((l) => (l.el.style.width = l.w + 'px'));
+      // backspace from the end, one key at a time
+      L.slice().reverse().forEach((l, i, all) => spring({
+        x: l.w, to: 0, k: 1100, c: 66, eps: 0.05, wait: i * 0.042,
+        step: (w) => {
+          const f = w / l.w;
+          l.el.style.width = w + 'px';
+          l.el.style.opacity = f;
+          l.el.style.transform = `translateY(${(1 - f) * 0.12}em)`;
+        },
+        done: i === all.length - 1 ? removed : null,
+      }));
+    });
+    function removed() {
+      hedge.innerHTML = '';
+      setCount('none');
+      // the checker runs again and finds something else
+      later(1300, () => {
+        stuff.classList.add('ann', 'live');
+        stuff.setAttribute('role', 'button');
+        stuff.setAttribute('tabindex', '0');
+        stuff.setAttribute('aria-expanded', 'false');
+        stuff.classList.remove('retract');
+        requestAnimationFrame(() => stuff.classList.add('drawn'));
+        setCount('warn');
+        state = 'B';
+        if (fromKey && document.activeElement && document.activeElement !== document.body) stuff.focus();
+      });
+    }
+  }
+
+  function restoreHedge(fromKey) {
+    if (state !== 'B') return;
+    state = 'busy';
+    hide();
+    stuff.classList.add('retract');
+    stuff.classList.remove('drawn', 'live', 'ann');
+    stuff.removeAttribute('role');
+    stuff.removeAttribute('tabindex');
+    stuff.removeAttribute('aria-expanded');
+    setCount('checking');
+    later(260, () => {
+      const L = letters(HEDGE);
+      L.forEach((l) => { l.el.style.width = '0px'; l.el.style.opacity = 0; });
+      // typed back in, with a person's rhythm
+      let t = 0;
+      L.forEach((l, i) => {
+        t += 0.05 + (i === 1 ? 0.12 : 0) + Math.random() * 0.035;
+        spring({
+          x: 0, to: l.w, k: 1500, c: 56, eps: 0.05, wait: t,
+          step: (w) => { l.el.style.width = w + 'px'; l.el.style.opacity = Math.min(1, (w / l.w) * 3); },
+          done: i === L.length - 1 ? typed : null,
+        });
+      });
+    });
+    function typed() {
+      hedge.innerHTML = guessHTML;
+      const guess = $('#guess');
+      later(650, () => {
+        guess.classList.add('drawn');
+        setCount('err');
+        state = 'A';
+        if (fromKey && document.activeElement && document.activeElement !== document.body) guess.focus();
+      });
+    }
+  }
+
+  // ---------- first check ----------
+
+  function start() {
+    document.body.classList.remove('loading');
+    const anns = [...prose.querySelectorAll('.ann.info')];
+    if (calm) {
+      prose.classList.remove('pre');
+      $('#guess').classList.add('drawn');
+      setCount('err');
+      state = 'A';
+      return;
+    }
+    setCount('checking');
+    later(700, () => {
+      prose.classList.remove('pre');
+      anns.forEach((a) => (a.style.transitionDelay = '0s'));
+      anns.forEach((a, i) => (a.style.transitionDelay = `0s, ${i * 0.07}s`));
+      later(anns.length * 70 + 300, () => {
+        $('#guess').classList.add('drawn');
+        later(380, () => { setCount('err'); state = 'A'; });
+      });
+    });
+  }
+  Promise.race([document.fonts.ready, new Promise((r) => setTimeout(r, 1500))]).then(start);
+
+  window.prose = { show: (id) => show(document.getElementById(id), null, true), hide, fix: () => (state === 'A' ? removeHedge() : restoreHedge()), get state() { return state; } };
+})();
+</script>
+</body>
+</html>

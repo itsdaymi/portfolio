@@ -1,119 +1,552 @@
 <!doctype html>
-<html lang="en" class="plain">
+<html lang="en">
 <head>
 <meta charset="utf-8">
-<script>
-// the page starts out laid out for having no forest (html.plain). with
-// javascript there may well be one, so that is taken back at once; and if by
-// the time everything has loaded the forest's own script has not said that
-// there is going to be one (it did not arrive, or it failed), it is put back.
-(function (cls) {
-  cls.remove('plain');
-  addEventListener('load', function () {
-    if (cls.contains('has-forest') || cls.contains('plain')) return;
-    // (whoever is reading by now keeps their place: the last thing to begin
-    // in the top third of the screen, or above it, stays where it is while
-    // the page closes up around it)
-    var mark = null;
-    [].forEach.call(document.querySelectorAll('.hero, [data-clearing]'), function (el) {
-      if (el.getBoundingClientRect().top <= innerHeight / 3) mark = el;
-    });
-    var was = mark ? mark.getBoundingClientRect().top : 0;
-    cls.add('plain');
-    if (mark) scrollBy(0, mark.getBoundingClientRect().top - was);
-  });
-})(document.documentElement.classList);
-</script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>daymi (daniel kistner) · design benchmark</title>
-<meta name="description" content="a design benchmark for ai models, built as a personal homepage. not a real portfolio.">
+<title>Portfolio Model Collage</title>
+<meta name="description" content="three ai models, one homepage brief: every design they made, side by side and runnable.">
 <meta name="robots" content="noindex, nofollow">
-<meta name="author" content="Daniel Kistner">
-<meta name="theme-color" content="#101b16" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#090e0c" media="(prefers-color-scheme: dark)">
-<meta property="og:type" content="website">
-<meta property="og:title" content="daymi">
-<meta property="og:description" content="a design benchmark for ai models. not a real portfolio.">
-<meta property="og:image" content="og.jpg">
-<meta property="og:image:width" content="1200">
-<meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="the name daymi, cut as a clearing into a forest seen from above.">
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:creator" content="@itsdaymi">
-<link rel="icon" href="favicon.svg" type="image/svg+xml">
-<link rel="apple-touch-icon" href="apple-touch-icon.png">
-<link rel="preload" href="fonts/barlow-400.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="fonts/barlow-500.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="css/style.css">
+<meta property="og:title" content="one homepage, three models">
+<meta property="og:description" content="three ai models, one homepage brief: every design they made, side by side and runnable.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23000'/%3E%3Crect x='5' y='7' width='6' height='18' fill='%23fff'/%3E%3Crect x='13' y='7' width='6' height='18' fill='%23fff'/%3E%3Crect x='21' y='7' width='6' height='18' fill='%23fff'/%3E%3C/svg%3E">
+<style>
+:root {
+  --black: #000;
+  --white: #fff;
+  --grey: #a3a3a3;
+  --dim: #6b6b6b;
+  --line: #262626;
+  --panel: #141414;
+  --head: "Bahnschrift SemiCondensed", "Bahnschrift", "DIN Alternate", "DIN Condensed", "Arial Narrow", sans-serif;
+  --body: "Bahnschrift", "DIN Alternate", "Segoe UI", system-ui, sans-serif;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--black); color: var(--white); font: 15px/1.5 var(--body); }
+a { color: var(--white); text-underline-offset: 3px; text-decoration-thickness: 1px; }
+:focus-visible { outline: 2px solid var(--white); outline-offset: 3px; }
+p { margin: 0; }
+.page { max-width: 1640px; margin: 0 auto; padding: 32px 28px 64px; }
+@media (max-width: 640px) { .page { padding: 20px 16px 48px; } }
+
+h1 { font: 600 44px/1 var(--head); letter-spacing: -.01em; margin: 0 0 14px; }
+h2 { font: 600 28px/1.1 var(--head); margin: 0 0 12px; }
+.intro { max-width: 76ch; color: var(--grey); margin-bottom: 28px; }
+.intro strong { color: var(--white); font-weight: 400; }
+
+/* summary table */
+.tablewrap { overflow-x: auto; margin-bottom: 18px; border-top: 1px solid var(--white); }
+table.runs { border-collapse: collapse; width: 100%; min-width: 900px; font-size: 14px; }
+.runs th, .runs td { text-align: left; vertical-align: top; padding: 10px 18px 10px 0; border-bottom: 1px solid var(--line); }
+.runs thead th { font: 400 13px var(--body); color: var(--dim); }
+.runs tbody th { font: 600 19px/1.1 var(--head); white-space: nowrap; }
+.runs tbody th span { display: block; font: 400 13px var(--body); color: var(--dim); margin-top: 2px; }
+
+details.prompt { border: 1px solid var(--line); margin: 0 0 44px; max-width: 980px; }
+details.prompt summary { cursor: pointer; padding: 10px 14px; color: var(--grey); }
+details.prompt[open] summary { border-bottom: 1px solid var(--line); }
+details.prompt pre { margin: 0; padding: 14px; white-space: pre-wrap; font: 14px/1.6 var(--body); color: var(--white); max-width: 80ch; }
+
+/* the collage matrix */
+.matrix { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); column-gap: 1px; background: var(--line); border: 1px solid var(--line); }
+.lane { display: contents; }
+.lane > * { background: var(--black); padding: 18px 18px 22px; }
+.lane > .top { grid-row: 1; position: sticky; top: 0; z-index: 3; border-bottom: 1px solid var(--line); padding: 12px 18px 10px; display: flex; align-items: baseline; gap: 14px; }
+.lane > .about { grid-row: 2; padding-top: 14px; border-bottom: 1px solid var(--line); }
+.lane > .s1 { grid-row: 3; }
+.lane > .s2 { grid-row: 4; border-top: 1px solid var(--line); }
+.lane > .s3 { grid-row: 5; border-top: 1px solid var(--line); }
+.lane[data-col="1"] > * { grid-column: 1; }
+.lane[data-col="2"] > * { grid-column: 2; }
+.lane[data-col="3"] > * { grid-column: 3; }
+.top h2 { font-size: 34px; margin: 0; }
+.top .when { color: var(--grey); }
+.about .how { color: var(--grey); font-size: 14px; max-width: 60ch; }
+.about dl { display: grid; grid-template-columns: auto 1fr; gap: 2px 12px; margin: 12px 0 0; font-size: 13px; }
+.about dt { color: var(--dim); }
+.about dd { margin: 0; }
+.stage { font: 600 19px/1.2 var(--head); margin: 0 0 4px; }
+.stage-note { color: var(--grey); font-size: 14px; margin-bottom: 16px; max-width: 62ch; }
+
+@media (max-width: 1100px) {
+  .matrix { display: block; background: none; border: 0; }
+  .lane { display: block; border: 1px solid var(--line); margin-bottom: 28px; }
+  .lane > * { padding: 16px; }
+  .lane > .top { position: static; }
+  .lane > .s1 { border-top: 0; }
+}
+
+/* pieces */
+.pieces { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 30px 16px; }
+.pieces.one { grid-template-columns: minmax(0, 1fr); }
+@media (max-width: 460px) { .pieces { grid-template-columns: minmax(0, 1fr); } }
+figure.piece { margin: 0; min-width: 0; }
+.frames { position: relative; padding: 0 0 12% 0; }
+.frames button { display: block; padding: 0; border: 0; background: none; cursor: zoom-in; width: 100%; }
+.frames .desk { aspect-ratio: 16 / 10; border: 1px solid #333; overflow: hidden; }
+.frames .desk img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: top; }
+.frames .ph { position: absolute; right: 6%; bottom: 0; width: 23%; border: 1px solid #000; box-shadow: 0 0 0 1px #3a3a3a; }
+.frames .ph img { display: block; width: 100%; aspect-ratio: 390 / 844; object-fit: cover; object-position: top; }
+.shipped .frames .desk { border: 2px solid var(--white); }
+figure.piece figcaption { margin-top: 10px; }
+.piece h4 { font: 600 19px/1.15 var(--head); margin: 0; display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+.piece h4 small { font: 400 13px var(--body); color: var(--dim); }
+.piece h4 .mark { font: 400 13px var(--body); color: var(--black); background: var(--white); padding: 0 5px; }
+.piece .idea { font-size: 14px; color: #d8d8d8; margin-top: 4px; }
+.piece .take { font-size: 13px; color: var(--grey); margin-top: 6px; padding-left: 9px; border-left: 1px solid #444; }
+.piece .take b { font-weight: 400; color: var(--white); }
+.caps { display: flex; gap: 6px; margin-top: 10px; }
+.caps button { flex: 1; padding: 0; border: 1px solid #333; background: none; cursor: zoom-in; aspect-ratio: 16 / 10; overflow: hidden; }
+.caps img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: top; }
+.caps-label { font-size: 12px; color: var(--dim); margin-top: 4px; }
+.ended { font-size: 15px; color: var(--grey); max-width: 52ch; }
+.ended strong { color: var(--white); font-weight: 400; }
+
+/* council strip */
+table.council { border-collapse: separate; border-spacing: 2px; width: 100%; max-width: 360px; font-size: 13px; }
+.council th { font-weight: 400; color: var(--dim); text-align: left; padding: 0 6px 4px 0; }
+.council td { height: 26px; text-align: center; font-variant-numeric: tabular-nums; position: relative; }
+.council td.v8 { background: #2b2b2b; color: var(--white); }
+.council td.v85 { background: #707070; color: var(--white); }
+.council td.v9 { background: var(--white); color: var(--black); }
+.council td.none { background: repeating-linear-gradient(135deg, transparent 0 4px, #333 4px 5px); color: var(--dim); }
+.council td.sat::after { content: ""; position: absolute; right: 6px; top: 50%; width: 5px; height: 5px; margin-top: -2.5px; background: currentColor; }
+.council tbody th { white-space: nowrap; }
+.key { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 12px; color: var(--grey); margin-top: 10px; max-width: 360px; }
+.key span { display: inline-flex; gap: 6px; align-items: center; }
+.key i { width: 12px; height: 12px; display: inline-block; }
+
+.acts { display: flex; flex-wrap: wrap; gap: 4px 16px; margin-top: 9px; font-size: 14px; }
+.acts a { color: var(--white); }
+.acts a:hover { color: var(--grey); }
+dialog#live { width: 100vw; height: 100vh; max-width: none; max-height: none; margin: 0; padding: 0; border: 0; background: var(--black); color: var(--white); }
+dialog#live[open] { display: flex; flex-direction: column; }
+dialog#live::backdrop { background: #000; }
+.live-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 18px; padding: 8px 14px; border-bottom: 1px solid var(--line); }
+.live-bar strong { font: 600 19px var(--head); margin-right: auto; }
+.live-bar a, .live-bar button { color: var(--white); font: 14px var(--body); }
+.live-bar button { background: none; border: 1px solid #555; padding: 4px 12px; cursor: pointer; }
+.live-bar button[aria-pressed="true"] { background: var(--white); color: var(--black); border-color: var(--white); }
+.live-stage { flex: 1; min-height: 0; display: flex; justify-content: center; background: #0a0a0a; }
+.live-stage iframe { border: 0; width: 100%; height: 100%; background: #fff; }
+.live-stage.phone iframe { width: 390px; max-width: 100%; border-left: 1px solid var(--line); border-right: 1px solid var(--line); }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* notes */
+.notes { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 28px 40px; margin-top: 48px; border-top: 1px solid var(--white); padding-top: 22px; }
+.notes h2 { font-size: 22px; }
+.notes ul { margin: 0; padding-left: 18px; color: var(--grey); font-size: 14px; max-width: 70ch; }
+.notes li { margin-bottom: 6px; }
+.notes li strong { color: var(--white); font-weight: 400; }
+
+/* viewer */
+dialog#lb { width: min(1400px, 96vw); max-height: 94vh; padding: 0; border: 1px solid #444; background: var(--black); color: var(--white); }
+dialog#lb::backdrop { background: rgba(0, 0, 0, .9); }
+.lb-bar { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+.lb-bar strong { font: 600 19px var(--head); }
+.lb-bar button { background: none; color: var(--white); border: 1px solid #555; padding: 4px 12px; font: 14px var(--body); cursor: pointer; }
+.lb-body { overflow: auto; max-height: calc(94vh - 52px); text-align: center; background: #0a0a0a; }
+.lb-body img { display: block; margin: 0 auto; max-width: 100%; height: auto; }
+.lb-body img.tall { max-height: calc(94vh - 52px); width: auto; }
+@media (prefers-reduced-motion: no-preference) { dialog#lb[open] { animation: lbin .16s ease-out; } }
+@keyframes lbin { from { opacity: 0; transform: scale(.985); } to { opacity: 1; transform: none; } }
+</style>
 </head>
 <body>
-<a class="skip" href="#projects">skip to projects</a>
+<div class="page">
 
-<div class="forest" aria-hidden="true"><canvas id="forest"></canvas></div>
+<header>
+  <h1>one homepage, three models</h1>
+  <p class="intro">Three ai models, <strong>fable 5.1</strong>, <strong>opus 5.5</strong> and <strong>fable 5.2</strong>, were each asked to design the same personal homepage for daymi.dev. These are all 18 pieces they produced: finals, sketches and the ones they dropped. Each column is one model and each row one stage, so read across a row to compare. Every piece shows its desktop capture (1440×900) with the phone capture (390×844) on top. Click a capture to enlarge it, or run any design live, full screen here or in a new tab. The projects on every page are invented placeholders.</p>
 
-<header class="hero">
-  <div class="hero-inner">
-    <h1 class="wordmark">
-      <svg viewBox="-30 -202 888 302" role="img" aria-label="daymi" focusable="false">
-        <defs>
-          <linearGradient id="tail" gradientUnits="userSpaceOnUse" x1="0" y1="30" x2="0" y2="86">
-            <stop offset="0"/>
-            <stop offset="0.3"/>
-            <stop offset="0.7"/>
-            <stop offset="1"/>
-          </linearGradient>
-        </defs>
-        <path d="M100-50A50 50 0 1 1 0-50A50 50 0 1 1 100-50"/>
-        <path d="M100-162V0"/>
-        <path d="M292-50A50 50 0 1 1 192-50A50 50 0 1 1 292-50"/>
-        <path d="M292-100V0"/>
-        <path d="M384-100V-50A50 50 0 0 0 484-50"/>
-        <path d="M484-100V70" data-exit/>
-        <path d="M576-100V0"/>
-        <path d="M576-60A40 40 0 0 1 656-60V0"/>
-        <path d="M656-60A40 40 0 0 1 736-60V0"/>
-        <path d="M828-100V0"/>
-        <path d="M828-172v.1"/>
-      </svg>
-    </h1>
-    <div class="bio" data-clearing="glade">
-      <p class="lead">building stuff, i guess.</p>
-      <p>daniel kistner. i live in the black forest<span class="seen" aria-hidden="true">, which looks roughly like this</span>.</p>
-    </div>
+  <div class="tablewrap">
+    <table class="runs">
+      <thead><tr><th scope="col">run</th><th scope="col">setup</th><th scope="col">brief</th><th scope="col">time</th><th scope="col">output</th><th scope="col">final or pick</th></tr></thead>
+      <tbody>
+        <tr>
+          <th scope="row">fable 5.1<span>21 oct 2026</span></th>
+          <td>fable 5.1 orchestrator with 7 fable 5.1 designer subagents at max effort</td>
+          <td>its own long brief ("three core directions… boil the ocean"), then a second round with more facts</td>
+          <td>about 66 min for round 1, about 64 min for round 2</td>
+          <td>6 full directions, each with a plan, notes and research</td>
+          <td>höhenlinien was the orchestrator's pick. none was taken further.</td>
+        </tr>
+        <tr>
+          <th scope="row">opus 5.5<span>10 nov 2026</span></th>
+          <td>one agent. round 2 forked 5 opus 5.5 subagents</td>
+          <td>the benchmark prompt below. round 2: "new, distinct ideas… more typical dev stuff"</td>
+          <td>about 44 min for the homepage, about 42 min for round 2</td>
+          <td>1 homepage, 7 sketches and a 12-font specimen</td>
+          <td>the hanging mobile. round 2 pick: daymi&lt;T&gt;.</td>
+        </tr>
+        <tr>
+          <th scope="row">fable 5.2<span>11 to 12 nov 2026</span></th>
+          <td>one agent plus a council: gpt 6.1 sol and opus 5.5 reviewed every round</td>
+          <td>the benchmark prompt, plus a design skill and an instruction to hill climb to 9/10 as judged by a review council</td>
+          <td>about 28 h wall clock over 19 review rounds</td>
+          <td>3 sketches and 1 site (forest.js alone is about 2,470 lines, with 177 checks)</td>
+          <td>the black forest from above. sol 9, opus 8.5. now the benchmark's reference page.</td>
+        </tr>
+      </tbody>
+    </table>
   </div>
+
+  <details class="prompt">
+    <summary>The benchmark prompt, which opus 5.5 and fable 5.2 got word for word</summary>
+<pre>build my personal homepage for daymi.dev. it's the first thing people see when they look me up. boil the ocean.
+
+me: daniel kistner, "daymi", always lowercase. lives in the beautiful black forest. studies applied computer science at hochschule offenburg, working student at frei gmbh. builds things with and for ai agents. bio: "building stuff, i guess". github.com/itsdaymi, x.com/itsdaymi, daniel@daymi.dev. voice: dry, understated, no hype.
+
+needs: hero, projects (data-driven, use 4-6 plausible placeholders), short about, links, tiny footer.
+
+i want good taste, slick physical motion, and a layout nobody has seen on a portfolio before. one unforgettable idea, everything else quiet. no generic ai-site look.
+
+static html/css/js, no build step. responsive to 360px, accessible, reduced motion respected.
+
+hill climb: explore several directions, pick the strongest, then screenshot at desktop and phone, critique it like a picky design lead, and iterate until it's genuinely great. don't stop at good.</pre>
+  </details>
 </header>
 
-<main>
-  <section id="projects" aria-labelledby="projects-h">
-    <h2 class="sign" id="projects-h" data-clearing="sign">projects</h2>
-    <ul class="projects" id="project-list"></ul>
-    <noscript><p class="plot">the projects are listed on <a href="https://github.com/itsdaymi">github</a>.</p></noscript>
+<main class="matrix" aria-label="designs by model and stage">
+
+  <!-- ============ fable 5.1 ============ -->
+  <section class="lane" data-col="1" aria-labelledby="m1">
+    <div class="top">
+      <h2 id="m1">fable 5.1</h2>
+      <p class="when">21 oct 2026</p>
+      </div>
+    <div class="about">
+      <p class="how">The orchestrator wrote a shared brief and sent out three designers. After more facts were added (black forest, offenburg) it reworked one and sent three more, each starting with a research pass over award-level portfolios. It picked höhenlinien and left the choice open. This round started before the benchmark prompt existed.</p>
+      <dl><dt>orchestrator</dt><dd>fable 5.1</dd><dt>designers</dt><dd>7 fable 5.1 subagents</dd><dt>directions</dt><dd>6</dd><dt>its pick</dt><dd>höhenlinien</dd></dl>
+    </div>
+    <div class="s1">
+      <h3 class="stage">round 1: three directions</h3>
+      <p class="stage-note">From the first brief, before the black forest facts.</p>
+      <div class="pieces">
+        <figure class="piece">
+          <div class="frames"><button type="button" class="desk" data-view><img loading="lazy" decoding="async" src="shots/f51-a-werkstatt-d.jpg" alt="werkstatt, desktop"></button><button type="button" class="ph" data-view><img loading="lazy" decoding="async" src="shots/f51-a-werkstatt-m.jpg" alt="werkstatt, phone"></button></div>
+          <figcaption><h4>werkstatt <small>a</small></h4>
+            <p class="idea">A DIN engineering drawing of daymi. The name is an exploded-view assembly with dimension lines and callouts, and the projects are a bill of materials. Tracing-paper sheet, one signal orange.</p>
+            <p class="take"><b>Its own take:</b> the most "you" on paper, and it scales best to 30 projects. Risk: the most static of the three.</p>
+            <p class="acts"><a href="designs/fable-5-1/a-werkstatt/index.html" data-live="designs/fable-5-1/a-werkstatt/index.html" data-title="werkstatt">view live</a><a href="designs/fable-5-1/a-werkstatt/index.html" target="_blank" rel="noopener noreferrer">open in new tab</a></p></figcaption>
+        </figure>
+        <figure class="piece">
+          <div class="frames"><button type="button" class="desk" data-view><img loading="lazy" decoding="async" src="shots/f51-b-lid-d.jpg" alt="lid, desktop"></button><button type="button" class="ph" data-view><img loading="lazy" decoding="async" src="shots/f51-b-lid-m.jpg" alt="lid, phone"></button></div>
+          <figcaption><h4>lid <small>b</small></h4>
+            <p class="idea">A sticker-bombed laptop lid. Every element is a vinyl sticker that slaps on at load. Drag them around and they remember where you left them.</p>
+            <p class="take"><b>Its own take:</b> the one people will screenshot and send to each other, with the strongest first three seconds. Risk: a composition, not a list. The round-1 copy still says stuttgart.</p>
+            <p class="acts"><a href="designs/fable-5-1/b-lid/index.html" data-live="designs/fable-5-1/b-lid/index.html" data-title="lid">view live</a><a href="designs/fable-5-1/b-lid/index.html" target="_blank" rel="noopener noreferrer">open in new tab</a></p></figcaption>
+        </figure>
+        <figure class="piece">
+          <div class="frames"><button type="button" class="desk" data-view><img loading="lazy" decoding="async" src="shots/f51-c-tageslicht-d.jpg" alt="tageslicht, desktop"></button><button type="button" class="ph" data-view><img loading="lazy" decoding="async" src="shots/f51-c-tageslicht-m.jpg" alt="tageslicht, phone"></button></div>
+          <figcaption><h4>tageslicht <small>c</small></h4>
+            <p class="idea">A quiet serif page lit by the real sun over offenburg. The palette moves through the day, the hero guesses what daymi is doing right now, and a scrubber drags through 24 hours.</p>
+            <p class="take"><b>Its own take:</b> the most refined, and the one that ages best. The real solar math makes it true rather than a gimmick. Reworked in round 2 for the black forest; this is that version.</p>
+            <p class="acts"><a href="designs/fable-5-1/c-tageslicht/index.html" data-live="designs/fable-5-1/c-tageslicht/index.html" data-title="tageslicht">view live</a><a href="designs/fable-5-1/c-tageslicht/index.html" target="_blank" rel="noopener noreferrer">open in new tab</a></p></figcaption>
+        </figure>
+      </div>
+    </div>
+    <div class="s2">
+      <h3 class="stage">round 2: researched, black forest brief</h3>
+      <p class="stage-note">Three new designers, each starting with a research pass.</p>
+      <div class="pieces">
+        <figure class="piece">
+          <div class="frames"><button type="button" class="desk" data-view><img loading="lazy" decoding="async" src="shots/f51-d-nebel-d.jpg" alt="nebel, desktop"></button><button type="button" class="ph" data-view><img loading="lazy" decoding="async" src="shots/f51-d-nebel-m.jpg" alt="nebel, phone"></button></div>
+          <figcaption><h4>nebel <small>d</small></h4>
+            <p class="idea">The black forest at 6am. Scrolling walks you forward through fog between layered firs, and each project sharpens as you reach it. One red dot on the i.</p>
+            <p class="take"><b>Its own take:</b> the one that will stop people. Also the most expensive to maintain, since every new project needs a depth slot.</p>
+            <p class="acts"><a href="designs/fable-5-1/d-nebel/index.html" data-live="designs/fable-5-1/d-nebel/index.html" data-title="nebel">view live</a><a href="designs/fable-5-1/d-nebel/index.html" target="_blank" rel="noopener noreferrer">open in new tab</a></p></figcaption>
+        </figure>
+        <figure class="piece">
+          <div class="frames"><button type="button" class="desk" data-view><img loading="lazy" decoding="async" src="shots/f51-e-two-readers-d.jpg" alt="two readers, desktop"></button><button type="button" class="ph" data-view><img loading="lazy" decoding="async" src="shots/f51-e-two-readers-m.jpg" alt="two readers, phone"></button></div>
+          <figcaption><h4>two readers <small>e</small></h4>
+            <p class="idea">One document, two readings. A "for people / for agents" switch morphs the editorial page into the document an agent would want, every element travelling via view transitions. Ships a real llms.txt.</p>
+            <p class="take"><b>Its own take:</b> the smartest idea for this audience. The human reading is the most conventional page of the six, so the idea carries it.</p>
+            <p class="acts"><a href="designs/fable-5-1/e-two-readers/index.html" data-live="designs/fable-5-1/e-two-readers/index.html" data-title="two readers">view live</a><a href="designs/fable-5-1/e-two-readers/index.html" target="_blank" rel="noopener noreferrer">open in new tab</a></p>
+            <div class="caps"><button type="button" data-view><img loading="lazy" decoding="async" src="shots/f51-e-two-readers-agent-d.jpg" alt="two readers, the agent reading"></button></div>
+            <p class="caps-label">The agent reading</p></figcaption>
+        </figure>
+        <figure class="piece">
+          <div class="frames"><button type="button" class="desk" data-view><img loading="lazy" decoding="async" src="shots/f51-f-hoehenlinien-d.jpg" alt="höhenlinien, desktop"></button><button type="button" class="ph" data-view><img loading="lazy" decoding="async" src="shots/f51-f-hoehenlinien-m.jpg" alt="höhenlinien, phone"></button></div>
+          <figcaption><h4>höhenlinien <small>f</small> <span class="mark">its pick</span></h4>
+            <p class="idea">A procedural contour map of the black forest edge, with daymi as a place on it. A red route draws 1:1 with the scrollbar, and projects are positions with a bearing and distance from home.</p>
+            <p class="take"><b>Its own take:</b> strongest on taste. The route drawing with the scrollbar is the slickest motion of the six, and the layout has never been seen on a portfolio.</p>
+            <p class="acts"><a href="designs/fable-5-1/f-hoehenlinien/index.html" data-live="designs/fable-5-1/f-hoehenlinien/index.html" data-title="höhenlinien">view live</a><a href="designs/fable-5-1/f-hoehenlinien/index.html" target="_blank" rel="noopener noreferrer">open in new tab</a></p></figcaption>
+        </figure>
+      </div>
+    </div>
+    <div class="s3">
+      <h3 class="stage">where it ended</h3>
+      <p class="ended"><strong>No final.</strong> It recommended höhenlinien, with nebel's load moment as the reference for how much ceremony the first second should have, and left the pick open. Three weeks later the benchmark restarted with the shorter prompt above.</p>
+    </div>
   </section>
 
-  <section id="about" class="plot" aria-labelledby="about-h" data-clearing>
-    <h2 class="sign" id="about-h">about</h2>
-    <p>i study applied computer science at hochschule offenburg and i’m a working student at frei gmbh. the rest of the time i build things with and for ai agents: tools they use, and tools for keeping an eye on them.</p>
-    <p>most of it is small. some of it works.</p>
+  <!-- ============ opus 5.5 ============ -->
+  <section class="lane" data-col="2" aria-labelledby="m2">
+    <div class="top">
+      <h2 id="m2">opus 5.5</h2>
+      <p class="when">10 nov 2026</p>
+      </div>
+    <div class="about">
+      <p class="how">Sketched three directions as stills, built the one where layout and motion are the same idea, then ran critique rounds on headless screenshots. Asked for new ideas with less black forest and more typescript, mobile and ux, it forked five subagents for one sketch each.</p>
+      <dl><dt>agents</dt><dd>1, plus 5 forks</dd><dt>homepage</dt><dd>about 44 min</dd><dt>checked at</dt><dd>18 widths, 0 to 8 projects</dd><dt>round 2 pick</dt><dd>daymi&lt;T&gt;</dd></dl>
+    </div>
+    <div class="s1">
+      <h3 class="stage">round 1: three stills</h3>
+      <p class="stage-note">Two were dropped. The third, the mobile, went straight into the real build.</p>
+      <div class="pieces">
+        <figure class="piece">
+          <div class="frames"><button type="button" class="desk" data-view><img loading="lazy" decoding="async" src="shots/o55-b-shelves-d.jpg" alt="crooked shelves, desktop"></button><button type="button" class="ph" data-view><img loading="lazy" decoding="async" src="shots/o55-b-shelves-m.jpg" alt="crooked shelves, phone"></button></div>
+          <figcaption><h4>crooked shelves <small>dropped</small></h4>
+            <p class="idea">The dot of the i was meant to fall off and roll down slightly tilted rules.</p>
+            <p class="take"><b>Its own take:</b> never animated. As a still it is a big name over a list.</p>
+            <p class="acts"><a href="designs/opus-5-5/explore/b-shelves.html" data-live="designs/opus-5-5/explore/b-shelves.html" data-title="crooked shelves">view live</a><a href="designs/opus-5-5/explore/b-shelves.html" target="_blank" rel="noopener noreferrer">open in new tab</a></p></figcaption>
+        </figure>
+        <figure class="piece">
+          <div class="frames"><button type="button" class="desk" data-view><img loading="lazy" decoding="async" src="shots/o55-c-terrain-d.jpg" alt="name as terrain, desktop"></button><button type="button" class="ph" data-view><img loading="lazy" decoding="async" src="shots/o55-c-terrain-m.jpg" alt="name as terrain, phone"></button></div>
+          <figcaption><h4>name as terrain <small>dropped</small></h4>
+            <p class="idea">"daymi" drawn as a contour map, with projects as the peaks around it.</p>
+            <p class="take"><b>Its own take:</b> the letters turn mushy, contour lines are an overused look, and nothing about it feels physical.</p>
+            <p class="acts"><a href="designs/opus-5-5/explore/c-terrain.html" data-live="designs/opus-5-5/explore/c-terrain.html" data-title="name as terrain">view live</a><a href="designs/opus-5-5/explore/c-terrain.html" target="_blank" rel="noopener noreferrer">open in new tab</a></p></figcaption>
+        </figure>
+      </div>
+    </div>
+    <div class="s2">
+      <h3 class="stage">round 2: five forks, less forest, more dev</h3>
+      <p class="stage-note">Made after the homepage, from notes on typescript, mobile and web apps, and ux. None of that is written on the pages.</p>
+      <div class="pieces">
+        <figure class="piece">
+          <div class="frames"><button type="button" class="desk" data-view><img loading="lazy" decoding="async" src="shots/o55-1-generic-d.jpg" alt="daymi&lt;T&gt;, desktop"></button><button type="button" class="ph" data-view><img loading="lazy" decoding="async" src="shots/o55-1-generic-m.jpg" alt="daymi&lt;T&gt;, phone"></button></div>
+          <figcaption><h4>daymi&lt;T&gt; <small>1</small> <span class="mark">its pick</span></h4>
+            <p class="idea">The page is a generic type. The T is a phone-style picker wheel: recruiter, developer, friend or agent. Pick one and the page rearranges the same facts for that reader.</p>
+            <p class="take"><b>Its own take:</b> the only sketch where the idea shows before you touch anything. Weak: the wheel is flat, not a 3d drum.</p>
+            <p class="acts"><a href="designs/opus-5-5/explore2/1-generic.html" data-live="designs/opus-5-5/explore2/1-generic.html" data-title="daymi&lt;T&gt;">view live</a><a href="designs/opus-5-5/explore2/1-generic.html" target="_blank" rel="noopener noreferrer">open in new tab</a></p>
+            <div class="caps"><button type="button" data-view><img loading="lazy" decoding="async" src="shots/orig-x2-1-d.jpg" alt="daymi&lt;T&gt;, the model's own capture"></button></div>
+            <p class="caps-label">The model's own capture</p></figcaption>
+        </figure>
+        <figure class="piece">
+          <div class="frames"><button type="button" class="desk" data-view><img loading="lazy" decoding="async" src="shots/o55-2-spec-d.jpg" alt="the page measures itself, desktop"></button><button type="button" class="ph" data-view><img loading="lazy" decoding="async" src="shots/o55-2-spec-m.jpg" alt="the page measures itself, phone"></button></div>
+          <figcaption><h4>the page measures itself <small>2</small></h4>
+            <p class="idea">Hover anything and it shows its own redlines: distances to neighbours, size, type settings. Hold alt to see all of them.</p>
+            <p class="take"><b>Its own take:</b> the most convincing demonstration of care for detail. With the overlay off it is an ordinary page.</p>
+            <p class="acts"><a href="designs/opus-5-5/explore2/2-spec.html" data-live="designs/opus-5-5/explore2/2-spec.html" data-title="the page measures itself">view live</a><a href="designs/opus-5-5/explore2/2-spec.html" target="_blank" rel="noopener noreferrer">open in new tab</a></p>
+            <div class="caps"><button type="button" data-view><img loading="lazy" decoding="async" src="shots/orig-x2-2-hover.jpg" alt="the redline overlay on hover"></button></div>
+            <p class="caps-label">The model's capture of the hover overlay</p></figcaption>
+        </figure>
+        <figure class="piece">
+          <div class="frames"><button type="button" class="desk" data-view><img loading="lazy" decoding="async" src="shots/o55-3-edge-d.jpg" alt="grab the edge, desktop"></button><button type="button" class="ph" data-view><img loading="lazy" decoding="async" src="shots/o55-3-edge-m.jpg" alt="grab the edge, phone"></button></div>
+          <figcaption><h4>grab the edge <small>3</small></h4>
+            <p class="idea">Resize the site by hand. It opens as the phone layout and springs out to desktop, blocks glide between layouts and the links drop into a tab bar.</p>
+            <p class="take"><b>Its own take:</b> the best fit for "i build mobile and web apps", and the opening is great. Once it settles, it is ordinary.</p>
+            <p class="acts"><a href="designs/opus-5-5/explore2/3-edge.html" data-live="designs/opus-5-5/explore2/3-edge.html" data-title="grab the edge">view live</a><a href="designs/opus-5-5/explore2/3-edge.html" target="_blank" rel="noopener noreferrer">open in new tab</a></p>
+            <div class="caps"><button type="button" data-view><img loading="lazy" decoding="async" src="shots/orig-x2-3-film.jpg" alt="grab the edge, filmstrip of the opening"></button></div>
+            <p class="caps-label">The model's filmstrip of the opening</p></figcaption>
+        </figure>
+        <figure class="piece">
+          <div class="frames"><button type="button" class="desk" data-view><img loading="lazy" decoding="async" src="shots/o55-4-prose-d.jpg" alt="one typed paragraph, desktop"></button><button type="button" class="ph" data-view><img loading="lazy" decoding="async" src="shots/o55-4-prose-m.jpg" alt="one typed paragraph, phone"></button></div>
+          <figcaption><h4>one typed paragraph <small>4</small></h4>
+            <p class="idea">The whole site is one paragraph with typescript hover popups. "i guess" has an error squiggle. Apply the fix and a new warning appears: 'modesty' is declared but its value is never read.</p>
+            <p class="take"><b>Its own take:</b> the quietest and funniest, the closest to the brief's voice. At rest it is just a paragraph.</p>
+            <p class="acts"><a href="designs/opus-5-5/explore2/4-prose.html" data-live="designs/opus-5-5/explore2/4-prose.html" data-title="one typed paragraph">view live</a><a href="designs/opus-5-5/explore2/4-prose.html" target="_blank" rel="noopener noreferrer">open in new tab</a></p>
+            <div class="caps"><button type="button" data-view><img loading="lazy" decoding="async" src="shots/orig-x2-4-d-error.jpg" alt="the error popup on i guess"></button></div>
+            <p class="caps-label">The model's capture of the error popup</p></figcaption>
+        </figure>
+        <figure class="piece">
+          <div class="frames"><button type="button" class="desk" data-view><img loading="lazy" decoding="async" src="shots/o55-5-layers-d.jpg" alt="layers, desktop"></button><button type="button" class="ph" data-view><img loading="lazy" decoding="async" src="shots/o55-5-layers-m.jpg" alt="layers, phone"></button></div>
+          <figcaption><h4>layers <small>5</small></h4>
+            <p class="idea">The page pulls apart into a 3d stack of its own layers, measured from the real page. It arrives exploded and settles flat. Drag, or hold L.</p>
+            <p class="take"><b>Its own take:</b> the most striking single moment. Flat, it is ordinary, and the exploded text is too small to read.</p>
+            <p class="acts"><a href="designs/opus-5-5/explore2/5-layers.html" data-live="designs/opus-5-5/explore2/5-layers.html" data-title="layers">view live</a><a href="designs/opus-5-5/explore2/5-layers.html" target="_blank" rel="noopener noreferrer">open in new tab</a></p>
+            <div class="caps"><button type="button" data-view><img loading="lazy" decoding="async" src="shots/orig-x2-5-dx.jpg" alt="layers, exploded"></button></div>
+            <p class="caps-label">The model's capture, exploded</p></figcaption>
+        </figure>
+      </div>
+    </div>
+    <div class="s3">
+      <h3 class="stage">where it ended: the hanging mobile</h3>
+      <p class="stage-note">Built before round 2 and not developed further.</p>
+      <div class="pieces one">
+        <figure class="piece shipped">
+          <div class="frames"><button type="button" class="desk" data-view><img loading="lazy" decoding="async" src="shots/o55-homepage-d.jpg" alt="the hanging mobile, desktop"></button><button type="button" class="ph" data-view><img loading="lazy" decoding="async" src="shots/o55-homepage-m.jpg" alt="the hanging mobile, phone"></button></div>
+          <figcaption><h4>the hanging mobile <span class="mark">final</span></h4>
+            <p class="idea">The page is a calder mobile. Every arm hangs from the centre of mass below it, and a title's font weight is its mass. Pull any piece and the rest tilts and rebalances. The only red is a westweg trail diamond, the last counterweight.</p>
+            <p class="take"><b>Its own take:</b> the only direction where the layout and the motion are the same idea. Checked at 18 widths from 320 to 2560 with no wire crossing text.</p>
+            <p class="acts"><a href="designs/opus-5-5/homepage/index.html" data-live="designs/opus-5-5/homepage/index.html" data-title="the hanging mobile">view live</a><a href="designs/opus-5-5/homepage/index.html" target="_blank" rel="noopener noreferrer">open in new tab</a></p>
+            <div class="caps"><button type="button" data-view><img loading="lazy" decoding="async" src="shots/orig-d5-pull.jpg" alt="pulling a project"></button><button type="button" data-view><img loading="lazy" decoding="async" src="shots/orig-f-d.jpg" alt="the full desktop page"></button></div>
+            <p class="caps-label">The model's captures: pulling a project, and the full page</p></figcaption>
+        </figure>
+      </div>
+    </div>
   </section>
 
-  <section id="elsewhere" class="plot" aria-labelledby="elsewhere-h" data-clearing>
-    <h2 class="sign" id="elsewhere-h">elsewhere</h2>
-    <ul class="links">
-      <li><a href="https://github.com/itsdaymi"><span>github</span><span>itsdaymi</span></a></li>
-      <li><a href="https://x.com/itsdaymi"><span>x</span><span>itsdaymi</span></a></li>
-      <li><a href="mailto:daniel@daymi.dev"><span>mail</span><span>daniel@daymi.dev</span></a></li>
-    </ul>
+  <!-- ============ fable 5.2 ============ -->
+  <section class="lane" data-col="3" aria-labelledby="m3">
+    <div class="top">
+      <h2 id="m3">fable 5.2</h2>
+      <p class="when">11 to 12 nov 2026</p>
+      </div>
+    <div class="about">
+      <p class="how">Three quick sketch heroes, then the aerial forest: a webgl canopy planted around the page layout, the name cut into the trees, everything else in clearings along a trail. Every round went to two reviewers who were not told the 9/10 target. It stopped once the feedback had turned to nitpicking.</p>
+      <dl><dt>agents</dt><dd>1, plus 37 reviewer runs</dd><dt>reviewers</dt><dd>gpt 6.1 sol, opus 5.5</dd><dt>final score</dt><dd>sol 9, opus 8.5</dd><dt>reference</dt><dd>the benchmark's reference page</dd></dl>
+    </div>
+    <div class="s1">
+      <h3 class="stage">round 1: three sketch heroes</h3>
+      <p class="stage-note">The first one was picked within ten minutes.</p>
+      <div class="pieces">
+        <figure class="piece">
+          <div class="frames"><button type="button" class="desk" data-view><img loading="lazy" decoding="async" src="shots/f52-a-luftbild-d.jpg" alt="luftbild, desktop"></button><button type="button" class="ph" data-view><img loading="lazy" decoding="async" src="shots/f52-a-luftbild-m.jpg" alt="luftbild, phone"></button></div>
+          <figcaption><h4>luftbild <small>a</small> <span class="mark">picked</span></h4>
+            <p class="idea">Aerial forest: the name cut into the trees, content in clearings along a trail. The seed of the final site.</p>
+            <p class="take"><b>Its own take:</b> picked over the other two before any of them were built out.</p>
+            <p class="acts"><a href="designs/fable-5-2/explore/a-luftbild.html" data-live="designs/fable-5-2/explore/a-luftbild.html" data-title="luftbild">view live</a><a href="designs/fable-5-2/explore/a-luftbild.html" target="_blank" rel="noopener noreferrer">open in new tab</a></p></figcaption>
+        </figure>
+        <figure class="piece">
+          <div class="frames"><button type="button" class="desk" data-view><img loading="lazy" decoding="async" src="shots/f52-b-staemme-d.jpg" alt="stämme, desktop"></button><button type="button" class="ph" data-view><img loading="lazy" decoding="async" src="shots/f52-b-staemme-m.jpg" alt="stämme, phone"></button></div>
+          <figcaption><h4>stämme <small>b</small></h4>
+            <p class="idea">Standing inside the forest: the name half hidden behind tree trunks at different depths.</p>
+            <p class="take"><b>Its own take:</b> dropped as a still sketch.</p>
+            <p class="acts"><a href="designs/fable-5-2/explore/b-staemme.html" data-live="designs/fable-5-2/explore/b-staemme.html" data-title="stämme">view live</a><a href="designs/fable-5-2/explore/b-staemme.html" target="_blank" rel="noopener noreferrer">open in new tab</a></p></figcaption>
+        </figure>
+        <figure class="piece">
+          <div class="frames"><button type="button" class="desk" data-view><img loading="lazy" decoding="async" src="shots/f52-c-mobile-d.jpg" alt="mobile, desktop"></button><button type="button" class="ph" data-view><img loading="lazy" decoding="async" src="shots/f52-c-mobile-m.jpg" alt="mobile, phone"></button></div>
+          <figcaption><h4>mobile <small>c</small></h4>
+            <p class="idea">A hanging mobile with the name and projects on wires: the same idea opus 5.5 turned into its homepage a day earlier, from the same prompt.</p>
+            <p class="take"><b>Its own take:</b> dropped for the forest.</p>
+            <p class="acts"><a href="designs/fable-5-2/explore/c-mobile.html" data-live="designs/fable-5-2/explore/c-mobile.html" data-title="mobile">view live</a><a href="designs/fable-5-2/explore/c-mobile.html" target="_blank" rel="noopener noreferrer">open in new tab</a></p></figcaption>
+        </figure>
+      </div>
+    </div>
+    <div class="s2">
+      <h3 class="stage">round 2: 19 council rounds</h3>
+      <p class="stage-note">Scores out of 10 per round. A square means satisfied, i.e. no blocking findings. Hover a score for its round.</p>
+      <table class="council">
+        <thead><tr><th scope="col">round</th><th scope="col">gpt 6.1 sol</th><th scope="col">opus 5.5</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">1</th><td class="v8" title="round 1, gpt 6.1 sol: 8 out of 10, not satisfied">8<span class="sr"></span></td><td class="none" title="round 1, opus 5.5: cut off by a restart">no score</td></tr>
+          <tr><th scope="row">2</th><td class="v85 sat" title="round 2, gpt 6.1 sol: 8.5 out of 10, satisfied">8.5<span class="sr">, satisfied</span></td><td class="v85" title="round 2, opus 5.5: 8.5 out of 10, not satisfied">8.5<span class="sr"></span></td></tr>
+          <tr><th scope="row">3</th><td class="v8 sat" title="round 3, gpt 6.1 sol: 8 out of 10, satisfied">8<span class="sr">, satisfied</span></td><td class="v8" title="round 3, opus 5.5: 8 out of 10, not satisfied">8<span class="sr"></span></td></tr>
+          <tr><th scope="row">4</th><td class="v85 sat" title="round 4, gpt 6.1 sol: 8.5 out of 10, satisfied">8.5<span class="sr">, satisfied</span></td><td class="v9 sat" title="round 4, opus 5.5: 9 out of 10, satisfied">9<span class="sr">, satisfied</span></td></tr>
+          <tr><th scope="row">5</th><td class="v85" title="round 5, gpt 6.1 sol: 8.5 out of 10, not satisfied">8.5<span class="sr"></span></td><td class="v85" title="round 5, opus 5.5: 8.5 out of 10, not satisfied">8.5<span class="sr"></span></td></tr>
+          <tr><th scope="row">6</th><td class="v8" title="round 6, gpt 6.1 sol: 8 out of 10, not satisfied">8<span class="sr"></span></td><td class="v8" title="round 6, opus 5.5: 8 out of 10, not satisfied">8<span class="sr"></span></td></tr>
+          <tr><th scope="row">7</th><td class="v85 sat" title="round 7, gpt 6.1 sol: 8.5 out of 10, satisfied">8.5<span class="sr">, satisfied</span></td><td class="v8" title="round 7, opus 5.5: 8 out of 10, not satisfied">8<span class="sr"></span></td></tr>
+          <tr><th scope="row">8</th><td class="v8" title="round 8, gpt 6.1 sol: 8 out of 10, not satisfied">8<span class="sr"></span></td><td class="v85" title="round 8, opus 5.5: 8.5 out of 10, not satisfied">8.5<span class="sr"></span></td></tr>
+          <tr><th scope="row">9</th><td class="v85 sat" title="round 9, gpt 6.1 sol: 8.5 out of 10, satisfied">8.5<span class="sr">, satisfied</span></td><td class="v85" title="round 9, opus 5.5: 8.5 out of 10, not satisfied">8.5<span class="sr"></span></td></tr>
+          <tr><th scope="row">10</th><td class="v85 sat" title="round 10, gpt 6.1 sol: 8.5 out of 10, satisfied">8.5<span class="sr">, satisfied</span></td><td class="v85" title="round 10, opus 5.5: 8.5 out of 10, not satisfied">8.5<span class="sr"></span></td></tr>
+          <tr><th scope="row">11</th><td class="v85" title="round 11, gpt 6.1 sol: 8.5 out of 10, not satisfied">8.5<span class="sr"></span></td><td class="v85" title="round 11, opus 5.5: 8.5 out of 10, not satisfied">8.5<span class="sr"></span></td></tr>
+          <tr><th scope="row">12</th><td class="v85 sat" title="round 12, gpt 6.1 sol: 8.5 out of 10, satisfied">8.5<span class="sr">, satisfied</span></td><td class="v85 sat" title="round 12, opus 5.5: 8.5 out of 10, satisfied">8.5<span class="sr">, satisfied</span></td></tr>
+          <tr><th scope="row">13</th><td class="v9 sat" title="round 13, gpt 6.1 sol: 9 out of 10, satisfied">9<span class="sr">, satisfied</span></td><td class="v9" title="round 13, opus 5.5: 9 out of 10, not satisfied">9<span class="sr"></span></td></tr>
+          <tr><th scope="row">14</th><td class="v85 sat" title="round 14, gpt 6.1 sol: 8.5 out of 10, satisfied">8.5<span class="sr">, satisfied</span></td><td class="v85 sat" title="round 14, opus 5.5: 8.5 out of 10, satisfied">8.5<span class="sr">, satisfied</span></td></tr>
+          <tr><th scope="row">15</th><td class="v85 sat" title="round 15, gpt 6.1 sol: 8.5 out of 10, satisfied">8.5<span class="sr">, satisfied</span></td><td class="none" title="round 15, opus 5.5: failed with a provider error">no score</td></tr>
+          <tr><th scope="row">16</th><td class="v85 sat" title="round 16, gpt 6.1 sol: 8.5 out of 10, satisfied">8.5<span class="sr">, satisfied</span></td><td class="v85 sat" title="round 16, opus 5.5: 8.5 out of 10, satisfied">8.5<span class="sr">, satisfied</span></td></tr>
+          <tr><th scope="row">17</th><td class="v9 sat" title="round 17, gpt 6.1 sol: 9 out of 10, satisfied">9<span class="sr">, satisfied</span></td><td class="v85 sat" title="round 17, opus 5.5: 8.5 out of 10, satisfied">8.5<span class="sr">, satisfied</span></td></tr>
+          <tr><th scope="row">18</th><td class="v9 sat" title="round 18, gpt 6.1 sol: 9 out of 10, satisfied">9<span class="sr">, satisfied</span></td><td class="v85" title="round 18, opus 5.5: 8.5 out of 10, not satisfied">8.5<span class="sr"></span></td></tr>
+          <tr><th scope="row">19</th><td class="v9 sat" title="round 19, gpt 6.1 sol: 9 out of 10, satisfied">9<span class="sr">, satisfied</span></td><td class="v85" title="round 19, opus 5.5: 8.5 out of 10, not satisfied">8.5<span class="sr"></span></td></tr>
+        </tbody>
+      </table>
+      <div class="key"><span><i style="background:#2b2b2b"></i>8</span><span><i style="background:#707070"></i>8.5</span><span><i style="background:#fff"></i>9</span><span><i style="background:repeating-linear-gradient(135deg,transparent 0 3px,#444 3px 4px);outline:1px solid #333"></i>no score</span></div>
+      <p class="stage-note" style="margin-top:14px">Sol stayed between 8 and 8.5 for twelve rounds, finding one new edge case each time. The one-column redesign in round 13 lifted both to 9. In the one round where both gave 9, opus was not satisfied.</p>
+    </div>
+    <div class="s3">
+      <h3 class="stage">where it ended: the black forest from above</h3>
+      <p class="stage-note">Kept as the reference page for this benchmark.</p>
+      <div class="pieces one">
+        <figure class="piece shipped">
+          <div class="frames"><button type="button" class="desk" data-view><img loading="lazy" decoding="async" src="shots/f52-site-d.jpg" alt="the black forest from above, desktop"></button><button type="button" class="ph" data-view><img loading="lazy" decoding="async" src="shots/f52-site-m.jpg" alt="the black forest from above, phone"></button></div>
+          <figcaption><h4>the black forest from above <span class="mark">final</span></h4>
+            <p class="idea">A webgl canopy planted around the page layout. The name is cut into the trees, every block sits in its own clearing, and a trail runs through all of it. Falls back to ink without a gpu.</p>
+            <p class="take"><b>Its own take:</b> final round, sol 9, satisfied three rounds running. Opus 8.5, holding out over how the trail passes the bio on short laptop screens.</p>
+            <p class="acts"><a href="designs/fable-5-2/site/index.html" data-live="designs/fable-5-2/site/index.html" data-title="the black forest from above">view live</a><a href="designs/fable-5-2/site/index.html" target="_blank" rel="noopener noreferrer">open in new tab</a></p>
+            <div class="caps"><button type="button" data-view><img loading="lazy" decoding="async" src="shots/orig-f52-round19-1440.jpg" alt="round 19 at 1440px"></button></div>
+            <p class="caps-label">The model's round 19 capture at 1440px</p></figcaption>
+        </figure>
+      </div>
+    </div>
   </section>
 </main>
 
-<footer data-clearing="edge">
-  <p>© <span data-year>2026</span> daniel kistner</p>
-  <p>a design benchmark for ai models, not a real portfolio. the projects are made up.</p>
-  <p data-trees>no trees were harmed.</p>
-</footer>
+<section class="notes" aria-label="notes">
+  <div>
+    <h2>Read this before comparing</h2>
+    <ul>
+      <li><strong>Not a fair fight.</strong> Fable 5.1 had subagents and its own brief, opus 5.5 ran alone for under an hour per round, and fable 5.2 had two outside reviewers and a day and a half.</li>
+      <li>Only opus 5.5 and fable 5.2 got the identical prompt. Both landed on the black forest and both sketched a hanging mobile: opus built it, fable dropped it for the forest.</li>
+      <li>Every page uses placeholder projects its model invented, so ignore the project names.</li>
+    </ul>
+  </div>
+  <div>
+    <h2>How the pages were kept</h2>
+    <ul>
+      <li>The files from the first two runs were deleted along with their repo. They were rebuilt from the agents' own edit history, replayed in order, and every page loads without errors.</li>
+      <li>Self-hosted fonts were fetched again from the same open-source font sources the agents used.</li>
+      <li>Captures labelled as the model's own are originals. The rest were taken fresh in headless chrome at 1440×900 and 390×844.</li>
+    </ul>
+  </div>
+  <div>
+    <h2>Missing or different</h2>
+    <ul>
+      <li>The first, stuttgart version of tageslicht. Fable 5.1 overwrote it in round 2.</li>
+      <li>daymi&lt;T&gt; differs slightly from the model's own capture, because three late edits could not be replayed.</li>
+      <li>Werkstatt's about line was reworded to name the employer as an affiliation only.</li>
+      <li>Opus 5.5's 12-font specimen page and the agents' planning notes are not included.</li>
+    </ul>
+  </div>
+</section>
 
-<script src="data/projects.js"></script>
-<script src="js/site.js"></script>
-<script src="js/forest.js"></script>
+</div>
+
+<dialog id="live" aria-labelledby="live-title">
+  <div class="live-bar"><strong id="live-title"></strong><button type="button" id="live-phone" aria-pressed="false">phone width</button><a id="live-tab" href="#" target="_blank" rel="noopener noreferrer">open in new tab</a><button type="button" id="live-close">Close</button></div>
+  <div class="live-stage" id="live-stage"><iframe id="live-frame" title="live design"></iframe></div>
+</dialog>
+
+<dialog id="lb" aria-labelledby="lb-title">
+  <div class="lb-bar"><strong id="lb-title"></strong><button type="button" id="lb-close">Close</button></div>
+  <div class="lb-body"><img id="lb-img" alt=""></div>
+</dialog>
+
+<script>
+(function () {
+  var lb = document.getElementById('lb');
+  var img = document.getElementById('lb-img');
+  var title = document.getElementById('lb-title');
+  if (!lb || typeof lb.showModal !== 'function') return;
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-view]');
+    if (!b) return;
+    e.preventDefault();
+    var i = b.querySelector('img');
+    img.src = i.src;
+    img.alt = i.alt;
+    img.className = b.classList.contains('ph') ? 'tall' : '';
+    title.textContent = i.alt;
+    lb.showModal();
+  });
+  document.getElementById('lb-close').addEventListener('click', function () { lb.close(); });
+
+  var live = document.getElementById('live');
+  var frame = document.getElementById('live-frame');
+  var stage = document.getElementById('live-stage');
+  var phone = document.getElementById('live-phone');
+  document.addEventListener('click', function (e) {
+    var a = e.target.closest('a[data-live]');
+    if (!a || e.ctrlKey || e.metaKey || e.shiftKey || e.button !== 0) return;
+    e.preventDefault();
+    document.getElementById('live-title').textContent = a.dataset.title.replace('&lt;', '<').replace('&gt;', '>');
+    document.getElementById('live-tab').href = a.dataset.live;
+    frame.src = a.dataset.live;
+    live.showModal();
+  });
+  phone.addEventListener('click', function () {
+    var on = phone.getAttribute('aria-pressed') !== 'true';
+    phone.setAttribute('aria-pressed', String(on));
+    stage.classList.toggle('phone', on);
+  });
+  function closeLive() { live.close(); }
+  document.getElementById('live-close').addEventListener('click', closeLive);
+  live.addEventListener('close', function () { frame.src = 'about:blank'; });
+  lb.addEventListener('click', function (e) { if (e.target === lb) lb.close(); });
+})();
+</script>
 </body>
 </html>

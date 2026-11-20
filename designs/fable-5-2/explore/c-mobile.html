@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>sketch c — mobile</title>
+<style>
+@font-face{font-family:Barlow;src:url(../fonts/barlow-latin-400-normal.woff2) format('woff2');font-weight:400}
+@font-face{font-family:Barlow;src:url(../fonts/barlow-latin-600-normal.woff2) format('woff2');font-weight:600}
+html,body{margin:0;height:100%;background:#eef1ef;color:#13201a;font:16px/1.4 Barlow,sans-serif;overflow:hidden}
+svg{position:fixed;inset:0;width:100%;height:100%}
+.n{position:absolute;transform:translate(-50%,0);text-align:center;white-space:nowrap}
+.n b{font-weight:600;display:block}
+.n span{color:#4c5a53;font-size:14px}
+.n.big b{font-size:min(15vw,120px);letter-spacing:-.04em;line-height:.9}
+</style>
+<svg id="s"></svg>
+<div id="nodes"></div>
+<script>
+// a balanced mobile: each bar's pivot sits at the centre of mass of what hangs below it
+const W=innerWidth,H=innerHeight,small=W<700;
+const tree={bar:small?W*.62:W*.5,kids:[
+  {label:'daymi',sub:'building stuff, i guess.',w:9,big:1,drop:small?70:90},
+  {bar:small?W*.5:W*.36,drop:small?250:210,kids:[
+    {bar:small?W*.34:W*.2,drop:70,kids:[{label:'holzweg',sub:'2026',w:3,drop:60},{label:'kuckuck',sub:'2025',w:2,drop:120}]},
+    {bar:small?W*.3:W*.17,drop:150,kids:[{label:'stammtisch',sub:'2025',w:2,drop:50},{bar:small?W*.24:W*.1,drop:120,kids:[{label:'zettel',sub:'2024',w:1,drop:50},{label:'nachtschicht',sub:'2024',w:1.4,drop:90}]}]}
+  ]}
+]};
+function weight(n){return n.w||(n.wt=n.kids.reduce((a,k)=>a+weight(k),0));}
+weight(tree);
+const svg=document.getElementById('s'),nodes=document.getElementById('nodes');let out='';
+function line(x1,y1,x2,y2){out+=`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#13201a" stroke-width="1.2"/>`;}
+function draw(n,x,y,depth){
+  if(n.label){const d=document.createElement('div');d.className='n'+(n.big?' big':'');d.style.left=x+'px';d.style.top=y+'px';d.innerHTML=`<b>${n.label}</b><span>${n.sub}</span>`;nodes.appendChild(d);
+    out+=`<circle cx="${x}" cy="${y-3}" r="2.6" fill="#c8102e"/>`;return;}
+  const [a,b]=n.kids,wa=weight(a),wb=weight(b),L=n.bar,la=L*wb/(wa+wb),lb=L*wa/(wa+wb);
+  const tilt=(depth%2?-1:1)*(.05+.03*depth),xa=x-la*Math.cos(tilt),ya=y-la*Math.sin(tilt),xb=x+lb*Math.cos(tilt),yb=y+lb*Math.sin(tilt);
+  line(xa,ya,xb,yb);out+=`<circle cx="${x}" cy="${y}" r="2.2" fill="#13201a"/>`;
+  line(xa,ya,xa,ya+a.drop);draw(a,xa,ya+a.drop,depth+1);line(xb,yb,xb,yb+b.drop);draw(b,xb,yb+b.drop,depth+1);}
+const px=small?W*.56:W*.5;line(px,0,px,small?90:110);draw(tree,px,small?90:110,0);svg.innerHTML=out;
+</script>
+</html>
