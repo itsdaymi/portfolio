@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en" class="plain">
+<head>
+<meta charset="utf-8">
+<script>
+// the page starts out laid out for having no forest (html.plain). with
+// javascript there may well be one, so that is taken back at once; and if by
+// the time everything has loaded the forest's own script has not said that
+// there is going to be one (it did not arrive, or it failed), it is put back.
+(function (cls) {
+  cls.remove('plain');
+  addEventListener('load', function () {
+    if (cls.contains('has-forest') || cls.contains('plain')) return;
+    // (whoever is reading by now keeps their place: the last thing to begin
+    // in the top third of the screen, or above it, stays where it is while
+    // the page closes up around it)
+    var mark = null;
+    [].forEach.call(document.querySelectorAll('.hero, [data-clearing]'), function (el) {
+      if (el.getBoundingClientRect().top <= innerHeight / 3) mark = el;
+    });
+    var was = mark ? mark.getBoundingClientRect().top : 0;
+    cls.add('plain');
+    if (mark) scrollBy(0, mark.getBoundingClientRect().top - was);
+  });
+})(document.documentElement.classList);
+</script>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>daymi (daniel kistner)</title>
+<meta name="description" content="daniel kistner, known as daymi. builds things with and for ai agents, from the black forest.">
+<meta name="author" content="Daniel Kistner">
+<link rel="canonical" href="https://daymi.dev/">
+<meta name="theme-color" content="#101b16" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#090e0c" media="(prefers-color-scheme: dark)">
+<meta property="og:type" content="profile">
+<meta property="og:url" content="https://daymi.dev/">
+<meta property="og:title" content="daymi">
+<meta property="og:description" content="building stuff, i guess.">
+<meta property="og:image" content="https://daymi.dev/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="the name daymi, cut as a clearing into a forest seen from above.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:creator" content="@itsdaymi">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="preload" href="fonts/barlow-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/barlow-500.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="css/style.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Person",
+  "name": "Daniel Kistner",
+  "alternateName": "daymi",
+  "url": "https://daymi.dev/",
+  "email": "mailto:daniel@daymi.dev",
+  "description": "Builds things with and for AI agents. Studies applied computer science at Hochschule Offenburg, working student at Frei GmbH.",
+  "homeLocation": { "@type": "Place", "name": "Black Forest, Germany" },
+  "affiliation": { "@type": "CollegeOrUniversity", "name": "Hochschule Offenburg" },
+  "worksFor": { "@type": "Organization", "name": "Frei GmbH" },
+  "sameAs": ["https://github.com/itsdaymi", "https://x.com/itsdaymi"]
+}
+</script>
+</head>
+<body>
+<a class="skip" href="#projects">skip to projects</a>
+
+<div class="forest" aria-hidden="true"><canvas id="forest"></canvas></div>
+
+<header class="hero">
+  <div class="hero-inner">
+    <h1 class="wordmark">
+      <svg viewBox="-30 -202 888 302" role="img" aria-label="daymi" focusable="false">
+        <defs>
+          <linearGradient id="tail" gradientUnits="userSpaceOnUse" x1="0" y1="30" x2="0" y2="86">
+            <stop offset="0"/>
+            <stop offset="0.3"/>
+            <stop offset="0.7"/>
+            <stop offset="1"/>
+          </linearGradient>
+        </defs>
+        <path d="M100-50A50 50 0 1 1 0-50A50 50 0 1 1 100-50"/>
+        <path d="M100-162V0"/>
+        <path d="M292-50A50 50 0 1 1 192-50A50 50 0 1 1 292-50"/>
+        <path d="M292-100V0"/>
+        <path d="M384-100V-50A50 50 0 0 0 484-50"/>
+        <path d="M484-100V70" data-exit/>
+        <path d="M576-100V0"/>
+        <path d="M576-60A40 40 0 0 1 656-60V0"/>
+        <path d="M656-60A40 40 0 0 1 736-60V0"/>
+        <path d="M828-100V0"/>
+        <path d="M828-172v.1"/>
+      </svg>
+    </h1>
+    <div class="bio" data-clearing="glade">
+      <p class="lead">building stuff, i guess.</p>
+      <p>daniel kistner. i live in the black forest<span class="seen" aria-hidden="true">, which looks roughly like this</span>.</p>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section id="projects" aria-labelledby="projects-h">
+    <h2 class="sign" id="projects-h" data-clearing="sign">projects</h2>
+    <ul class="projects" id="project-list"></ul>
+    <noscript><p class="plot">the projects are listed on <a href="https://github.com/itsdaymi">github</a>.</p></noscript>
+  </section>
+
+  <section id="about" class="plot" aria-labelledby="about-h" data-clearing>
+    <h2 class="sign" id="about-h">about</h2>
+    <p>i study applied computer science at hochschule offenburg and i’m a working student at frei gmbh. the rest of the time i build things with and for ai agents: tools they use, and tools for keeping an eye on them.</p>
+    <p>most of it is small. some of it works.</p>
+  </section>
+
+  <section id="elsewhere" class="plot" aria-labelledby="elsewhere-h" data-clearing>
+    <h2 class="sign" id="elsewhere-h">elsewhere</h2>
+    <ul class="links">
+      <li><a href="https://github.com/itsdaymi" rel="me"><span>github</span><span>itsdaymi</span></a></li>
+      <li><a href="https://x.com/itsdaymi" rel="me"><span>x</span><span>itsdaymi</span></a></li>
+      <li><a href="mailto:daniel@daymi.dev"><span>mail</span><span>daniel@daymi.dev</span></a></li>
+    </ul>
+  </section>
+</main>
+
+<footer data-clearing="edge">
+  <p>© <span data-year>2026</span> daniel kistner</p>
+  <p data-trees>no trees were harmed.</p>
+</footer>
+
+<script src="data/projects.js"></script>
+<script src="js/site.js"></script>
+<script src="js/forest.js"></script>
+</body>
+</html>

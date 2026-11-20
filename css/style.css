@@ -1,0 +1,836 @@
+/* daymi.dev
+   one idea: the page is the black forest seen from above, and the content
+   sits in its clearings. everything in this file is the quiet part. */
+
+@font-face {
+  font-family: "Barlow";
+  src: url("../fonts/barlow-400.woff2") format("woff2");
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Barlow";
+  src: url("../fonts/barlow-500.woff2") format("woff2");
+  font-weight: 500;
+  font-display: swap;
+}
+
+:root {
+  color-scheme: light dark;
+
+  /* ground, type, and the one accent: the red diamond that marks a trail here */
+  --snow: #eef1ef;
+  --ink: #13201a;
+  --muted: #4b5952;
+  --marker: #c8102e;
+
+  /* the forest. forest.js reads these. */
+  --fir-floor: #09110d;
+  --fir-0: #0f1b15;
+  --fir-1: #182a21;
+  --fir-2: #233a2e;
+  --fir-tip: #40594a;
+  --shade: #b4c1ca;
+
+  /* how much open ground the forest leaves around a block of text.
+     the lower bounds are capped in vw so that enlarged text on a small
+     screen takes its room from the forest, not from itself. */
+  --clearing: clamp(min(2.25rem, 10vw), 5vw, 4rem);
+
+  --gutter: clamp(min(1.25rem, 5.5vw), 5vw, 3rem);
+
+  /* how heavy the name is, in the units of its own drawing (it is 888 wide).
+     forest.js cuts the clearing to --stroke. --under is how wide the ground
+     under the cut is painted at night, when it is lit. */
+  --stroke: 34;
+  --under: 46;
+  --text: 1.0625rem;
+  --small: 0.9375rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* night: the snow holds some moonlight, the firs hold none */
+    --snow: #44595f;
+    --ink: #f3f6f5;
+    --muted: #ccd7d4;
+    --marker: #ff6b7b;
+    --cut: #d3dfe3; /* the ground the name is cut down to: the one place the moon reaches */
+    --fir-floor: #060a09;
+    --fir-0: #090e0c;
+    --fir-1: #0e1613;
+    --fir-2: #15211c;
+    --fir-tip: #22342c;
+    --shade: #334449;
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  position: relative;
+  margin: 0;
+  overflow-x: clip;
+  background: var(--snow);
+  color: var(--ink);
+  font: 400 var(--text) / 1.5 "Barlow", "DIN Alternate", "Bahnschrift", system-ui, sans-serif;
+  overflow-wrap: anywhere; /* a long word breaks before it leaves its clearing */
+  -webkit-font-smoothing: antialiased;
+}
+
+p,
+h1,
+h2,
+h3,
+ul {
+  margin: 0;
+  padding: 0;
+}
+
+ul {
+  list-style: none;
+}
+
+a {
+  color: inherit;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.22em;
+}
+
+a:hover {
+  text-decoration-thickness: 2px;
+}
+
+:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 4px;
+  border-radius: 2px;
+}
+
+::selection {
+  background: var(--ink);
+  color: var(--snow);
+}
+
+.skip {
+  position: absolute;
+  left: var(--gutter);
+  top: 0;
+  z-index: 3;
+  padding: 0.5rem 0.875rem;
+  background: var(--snow);
+  transform: translateY(-120%);
+}
+
+.skip:focus {
+  transform: translateY(1rem);
+}
+
+/* ---------------------------------------------------------------- forest */
+
+.forest {
+  position: absolute;
+  inset: 0;
+  padding-left: var(--clearing); /* forest.js reads the resolved value from here */
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.forest canvas {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: block;
+}
+
+.forest canvas[hidden] {
+  display: none;
+}
+
+/* forest.js sets .forest-on once the trees are actually being drawn, and
+   takes it away again if the gpu context is lost. without it there is
+   nothing to show, and the name stays in ink. */
+html:not(.forest-on) .forest {
+  visibility: hidden;
+}
+
+/* while the window is being resized the forest no longer fits the text, and
+   steps back until it has been planted again (forest.js) */
+.forest {
+  transition: opacity 0.3s ease-out;
+}
+
+html.resizing .forest {
+  opacity: 0;
+  transition-duration: 0.06s;
+}
+
+main,
+footer {
+  position: relative;
+  z-index: 1;
+}
+
+/* no z-index on this one: the wordmark inside it has to get underneath the
+   forest, and a stacking context of its own would keep it on top */
+.hero {
+  position: relative;
+}
+
+/* ------------------------------------------------------------------ hero */
+
+.hero {
+  display: grid;
+  place-items: center;
+  min-height: 100svh;
+  padding: 4svh var(--gutter) 6svh;
+}
+
+/* (the last term keeps the name from filling a short, wide screen) */
+.hero-inner {
+  width: min(100%, max(70rem, 58vw), 150svh);
+}
+
+/* the name lies under the forest's canvas, which is see-through wherever no
+   fir stands. so the firs grow over its edges, and cast their shadows on it. */
+.wordmark {
+  position: relative;
+  z-index: -1;
+}
+
+.wordmark svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.wordmark path {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: var(--stroke);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: stroke 0.6s ease 0.3s, stroke-width 0.6s ease 0.3s;
+}
+
+/* the tail of the y, where the trail sets off, is painted top to bottom from
+   one colour to another. by default both are ink, like the rest of the name.
+   (the selector is a notch heavier than the rules for the other strokes, so
+   that this one keeps its paint whatever colour they turn.) */
+.wordmark svg path[data-exit] {
+  stroke: url(#tail) var(--ink);
+}
+
+#tail stop {
+  stop-color: var(--ink);
+  transition: stop-color 0.6s ease 0.3s;
+}
+
+/* the name starts out written in ink. as the forest comes up around it the
+   ink draws in to nothing, paling as it goes, and what is left is the gap in
+   the trees. */
+.forest-on .wordmark path {
+  stroke: var(--snow);
+  stroke-width: 0;
+}
+
+.forest-on #tail stop {
+  stop-color: var(--snow);
+}
+
+/* by night the ink does not go. it turns into the ground the name is cut down
+   to, the one place the moon reaches, so the name stays about as bright as it
+   was. that ground is painted a little wider than the cut, so that its smooth
+   edge is lost among the firs and the edge you see is theirs. down the tail
+   of the y the light runs out, and the trail that leaves from it is unlit. */
+@media screen and (prefers-color-scheme: dark) {
+  .forest-on .wordmark path {
+    stroke: var(--cut);
+    stroke-width: var(--under);
+  }
+
+  .forest-on #tail stop:nth-child(1) {
+    stop-color: var(--cut);
+  }
+
+  .forest-on #tail stop:nth-child(2) {
+    stop-color: color-mix(in srgb, var(--cut) 84%, var(--snow));
+  }
+
+  .forest-on #tail stop:nth-child(3) {
+    stop-color: color-mix(in srgb, var(--cut) 16%, var(--snow));
+  }
+
+  .forest-on #tail stop:nth-child(4) {
+    stop-color: var(--snow);
+  }
+}
+
+.bio {
+  width: min(100%, 22rem);
+  /* (to the right, under the end of the name: but not so far right that
+     its clearing would have no forest between it and the side of the screen) */
+  margin: calc(var(--clearing) + 3.5rem) 0 0 clamp(0px, 100% - 22rem - max(0px, 9rem - (100vw - 100%) / 2), 66%);
+}
+
+.lead {
+  margin-bottom: 0.375rem;
+  font-size: clamp(1.375rem, 1.1rem + 0.9vw, 1.75rem);
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.bio p:last-child {
+  color: var(--muted);
+  text-wrap: balance; /* (no last line of one word) */
+}
+
+/* a remark about the forest: only there while there is a forest to point at
+   (forest.js sets .has-forest once it knows it can draw one) */
+.seen {
+  display: none;
+}
+
+.has-forest .seen {
+  display: inline;
+}
+
+/* --------------------------------------------------------------- content */
+
+/* there is to be forest down both sides of the page. on a wide screen the
+   column leaves room for it by being narrower than the screen; on a screen
+   that is not wide enough for that, the column makes the room itself. */
+main {
+  width: min(100%, 76rem);
+  margin: 0 auto;
+  padding: 0 max(var(--gutter), clamp(4.5rem, 12.5vw, 10rem) - max(0px, (100vw - 76rem) / 2));
+}
+
+/* a section heading is a waymark: red diamond, then the name of the place */
+.sign {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  width: max-content;
+  max-width: 100%;
+  font-size: var(--text);
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+.sign::before {
+  content: "";
+  flex: none;
+  width: 0.5rem;
+  height: 0.5rem;
+  background: var(--marker);
+  transform: rotate(45deg);
+}
+
+#projects > .sign {
+  margin: 2rem 0 0 3%;
+}
+
+/* (what stands in for the list when there is no javascript to fill it) */
+#projects .plot {
+  width: auto;
+  max-width: 30rem;
+  margin: 1.5rem 0 0 3%;
+}
+
+.projects {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-auto-rows: minmax(1rem, auto);
+  row-gap: calc(var(--clearing) * 2 + 4.5rem);
+  margin-top: calc(var(--clearing) * 2 + 2rem);
+}
+
+.project {
+  position: relative;
+  grid-row: calc(var(--i) + 1) / span 2;
+  align-self: start;
+  width: fit-content;
+  max-width: min(100%, 21rem);
+}
+
+.project:nth-child(odd) {
+  grid-column: 1;
+}
+
+.project:nth-child(even) {
+  grid-column: 2;
+  justify-self: end;
+}
+
+/* a little drift, so the clearings do not line up like a grid */
+.project:nth-child(6n + 1) { margin-left: 3%; }
+.project:nth-child(6n + 2) { margin-right: 4%; }
+.project:nth-child(6n + 3) { margin-left: 12%; }
+.project:nth-child(6n + 4) { margin-right: 12%; }
+.project:nth-child(6n + 5) { margin-left: 6%; }
+.project:nth-child(6n + 6) { margin-right: 0; }
+
+.project p,
+.plot p {
+  text-wrap: pretty;
+}
+
+.project h3 {
+  margin-bottom: 0.25rem;
+  font-size: 1.375rem;
+  font-weight: 500;
+  line-height: 1.25;
+}
+
+/* a faint underline, so a title reads as a link without a pointer to hover it */
+.project a {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-decoration-color: color-mix(in srgb, currentColor 38%, transparent);
+}
+
+/* the whole clearing is the link (but never wider than the page) */
+.project a::after {
+  content: "";
+  position: absolute;
+  inset: calc(-1 * min(1.75rem, var(--gutter) - 0.25rem));
+  border-radius: 2rem;
+}
+
+/* (a link that takes the focus is scrolled well into view, clearing and all:
+   not just far enough for its own line of text to show) */
+.project a,
+.links a {
+  scroll-margin-block: 25vh;
+}
+
+.project h3 {
+  hyphens: auto;
+}
+
+.project a:focus-visible {
+  outline: none;
+}
+
+.project a:focus-visible::after {
+  outline: 2px solid var(--ink);
+  outline-offset: -0.5rem;
+}
+
+.project:hover a,
+.project a:focus-visible {
+  text-decoration-thickness: 2px;
+  text-decoration-color: currentColor;
+}
+
+.meta {
+  margin-top: 0.5rem;
+  color: var(--muted);
+  font-size: var(--small);
+}
+
+.plot {
+  width: min(100%, 30rem);
+}
+
+.plot > .sign {
+  margin-bottom: 0.875rem;
+}
+
+.plot p + p {
+  margin-top: 0.75rem;
+}
+
+#about {
+  max-width: 92%;
+  margin: calc(var(--clearing) * 2 + 9rem) 0 0 8%;
+}
+
+#elsewhere {
+  width: min(100%, 23rem);
+  max-width: 93%;
+  margin: calc(var(--clearing) * 2 + 6rem) 7% 0 auto;
+}
+
+.links a {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  column-gap: 1.5rem;
+  padding: 0.375rem 0;
+  font-size: 1.375rem;
+  line-height: 1.3;
+  text-decoration: none;
+}
+
+.links span:first-child {
+  flex: none;
+  font-weight: 500;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-decoration-color: color-mix(in srgb, currentColor 38%, transparent);
+  text-underline-offset: 0.22em;
+}
+
+.links span:last-child {
+  color: var(--muted);
+  font-size: var(--text);
+  overflow-wrap: anywhere;
+  text-align: right;
+}
+
+.links a:hover span:first-child,
+.links a:focus-visible span:first-child {
+  text-decoration-thickness: 2px;
+  text-decoration-color: currentColor;
+}
+
+/* ---------------------------------------------------------------- footer */
+
+footer {
+  padding: 15rem var(--gutter) 2.5rem;
+  color: var(--muted);
+  font-size: var(--small);
+  text-align: center;
+}
+
+/* ------------------------------------------------------------ narrower */
+
+/* one column: the clearings step from side to side down the page */
+/* the tail of the y comes down 58% of the way across the name, and the trail
+   sets off from it. on a wide screen the bio stands to the right of that
+   line, under the end of the name, with forest between its clearing and the
+   tail. below 85rem there is not the room for that on the right (the side
+   of the screen is too near, and the bio would be pushed in under the tail),
+   so the bio stands to the left of the line, up against it and a little way
+   in from the side of the screen, and the trail goes straight by: where
+   there is room for it there, the name being at least 40.5rem wide. the
+   second term in each of these is next to nothing where there is that room,
+   and a very great deal where there is not: there, on anything narrower
+   than about 45rem, the bio stays where it was, under the name, and the
+   trail goes through its clearing. (this is not the breakpoint between one
+   column and two, which is 70rem: the projects are in two columns from
+   there, and the bio is on the left for a while yet.) */
+@media (max-width: 85rem) {
+  .bio {
+    width: min(100%, 22rem, max(58% - 9.5rem, (23.5rem - 58%) * 9999));
+    margin-left: min(
+      clamp(0px, 100% - 22rem - max(0px, 9rem - (100vw - 100%) / 2), 46%),
+      max(2.5rem, 58% - 29rem, (23.5rem - 58%) * 9999)
+    );
+  }
+}
+
+@media (max-width: 70rem) {
+
+  .projects {
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--clearing) * 2 + 7rem);
+  }
+
+  .project,
+  .project:nth-child(n) {
+    max-width: min(64%, 23rem);
+    margin-inline: 0;
+  }
+
+  .project:nth-child(even) {
+    align-self: flex-end;
+  }
+
+  /* (nor all the same measure: set to one width they wrap alike, and their
+     clearings come out as one shape six times) */
+  .project:nth-child(3n + 2) {
+    max-width: min(56%, 20rem);
+  }
+
+  .project:nth-child(3n) {
+    max-width: min(60%, 21.5rem);
+  }
+
+  #about {
+    max-width: 100%;
+    margin-left: 0;
+  }
+
+  #elsewhere {
+    max-width: 100%;
+    margin-right: 0;
+  }
+}
+
+/* phones: the clearings are islands here too, with forest down both sides of
+   the screen, and each one sits a little to one side or the other. the strips
+   of forest are whatever is left once the text has a 13.5rem column, so with
+   enlarged text they narrow and then go. */
+@media (max-width: 36rem) {
+  :root {
+    --gutter: min(1.5rem, 6.5vw);
+    --side: clamp(0px, (100vw - 2 * var(--gutter) - 13.5rem) / 2, 3.5rem);
+    --drift: min(0.875rem, var(--side) * 0.4);
+    --stroke: 38;
+    --under: 50;
+    --text: 1rem;
+    --small: 0.875rem;
+  }
+
+  /* (the name sits above the middle: less plain forest over it, more of the
+     trail under the bio) */
+  .hero {
+    padding: 2svh 1rem 13svh;
+  }
+
+  /* (here the room at the sides comes from --side, on each block) */
+  main {
+    padding-inline: var(--gutter);
+  }
+
+  #projects > .sign,
+  #projects .plot {
+    margin-left: var(--side);
+  }
+
+
+  .bio {
+    position: relative;
+    left: var(--drift);
+    width: auto;
+    margin: calc(var(--clearing) + 2rem) calc(var(--side) + var(--gutter) - 1rem) 0;
+  }
+
+  /* (well apart: the forest between them is what the page is about) */
+  .projects {
+    gap: calc(var(--clearing) * 2 + 8rem);
+  }
+
+  .project,
+  .project:nth-child(n) {
+    left: calc(var(--drift) * -1);
+    width: auto;
+    max-width: none;
+    align-self: stretch;
+    margin: 0 var(--side);
+  }
+
+  /* no two in line: each a little further to one side than the last */
+  .project:nth-child(6n + 2) { left: var(--drift); }
+  .project:nth-child(6n + 3) { left: calc(var(--drift) * -0.3); }
+  .project:nth-child(6n + 4) { left: calc(var(--drift) * 0.8); }
+  .project:nth-child(6n + 5) { left: calc(var(--drift) * -0.8); }
+  .project:nth-child(6n + 6) { left: calc(var(--drift) * 0.4); }
+
+  /* ...and some stand well to one side, with a narrower measure. the forest
+     that leaves on their other side is where the trail goes by: it does not
+     run through every clearing on the page.
+     only where that leaves room for it, though. --aside is the narrower
+     measure if the column is at least 7.5rem wider than the widest of them, and the measure
+     the others have if not, as with enlarged text: a project set aside with
+     nothing going by would be set aside for no reason. (the second term is
+     next to nothing or a very great deal, depending on which side of
+     19.5rem the column is.) and with no forest there is no trail to make
+     room for: not in forced colours, not on paper, and not when the forest
+     has been given up on, html.plain. */
+  @media screen and (forced-colors: none) {
+    html:not(.plain) .project:nth-child(6n + 2),
+    html:not(.plain) .project:nth-child(6n + 4),
+    html:not(.plain) .project:nth-child(6n + 5) {
+      --aside: min(100% - 2 * var(--side), max(var(--measure, 11rem), (19.5rem - 100%) * 9999));
+      left: 0;
+      width: var(--aside);
+    }
+
+    html:not(.plain) .project:nth-child(6n + 2),
+    html:not(.plain) .project:nth-child(6n + 5) {
+      align-self: flex-end;
+      margin: 0 calc(var(--side) * 0.8) 0 0;
+    }
+
+    /* (one of the three has a wider measure than the other two, so that its
+       clearing is wider and lower than theirs: not one island three times) */
+    html:not(.plain) .project:nth-child(6n + 5) {
+      --measure: 12rem;
+    }
+
+    html:not(.plain) .project:nth-child(6n + 4) {
+      align-self: flex-start;
+      margin: 0 0 0 calc(var(--side) * 0.8);
+    }
+  }
+
+  .project a::after {
+    inset: calc(-1 * min(1rem, var(--gutter) - 0.25rem));
+    border-radius: 1.25rem;
+  }
+
+  #about,
+  #elsewhere {
+    position: relative;
+    left: var(--drift);
+    width: auto;
+    margin: calc(var(--clearing) * 2 + 7.5rem) var(--side) 0;
+  }
+
+  #elsewhere {
+    left: calc(var(--drift) * -0.7);
+  }
+
+  /* (the last clearing on the page is set aside in the same way, and on the
+     same terms, so that the trail leaves the forest past it and not through
+     it. its lines are a label and an address, so its measure is a little
+     wider than a project's.) */
+  @media screen and (forced-colors: none) {
+    html:not(.plain) #elsewhere {
+      left: 0;
+      width: min(100% - 2 * var(--side), max(12.5rem, (19rem - 100%) * 9999));
+      margin-left: auto;
+      margin-right: calc(var(--side) * 0.8);
+    }
+  }
+
+  footer {
+    padding-top: 11rem;
+  }
+}
+
+/* a phone on its side: the name gives up some of its size, so that the whole
+   of the bio fits on the screen under it */
+@media (orientation: landscape) and (max-height: 30rem) {
+  .hero {
+    padding-block: 2svh 3svh;
+  }
+
+  .hero-inner {
+    width: min(100%, 118svh);
+  }
+
+  .bio {
+    margin-top: calc(var(--clearing) + 1rem);
+  }
+}
+
+/* ------------------------------------------------------- without a forest */
+
+/* the gaps between the blocks are there to hold forest. where there is none
+   they close up: with no javascript, no gpu, or a forest that was given up on
+   (html.plain), and in forced colours and on paper (further down). */
+.plain .projects {
+  row-gap: 3.5rem;
+  margin-top: 3rem;
+}
+
+.plain #about,
+.plain #elsewhere {
+  margin-top: 5rem;
+}
+
+.plain footer {
+  padding-top: 7rem;
+}
+
+/* ------------------------------------------------------------ fallbacks */
+
+/* (no javascript: no list. the paragraph that stands in for it takes its place.) */
+.projects:empty {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wordmark path,
+  #tail stop {
+    transition: none;
+  }
+}
+
+/* no forest in forced colours or on paper: the name stays in ink, in a
+   colour that is certain to show */
+@media (forced-colors: active) {
+  .forest {
+    display: none;
+  }
+
+  .wordmark path,
+  .forest-on .wordmark path {
+    stroke: CanvasText;
+    stroke-width: var(--stroke);
+  }
+
+  .wordmark svg path[data-exit] {
+    stroke: CanvasText;
+  }
+
+  .sign::before {
+    forced-color-adjust: none;
+    background: CanvasText;
+  }
+
+  .has-forest .seen {
+    display: none;
+  }
+}
+
+/* (the same closing up as for html.plain, above) */
+@media print, (forced-colors: active) {
+  html .projects {
+    row-gap: 3.5rem;
+    margin-top: 3rem;
+  }
+
+  html #about,
+  html #elsewhere {
+    margin-top: 5rem;
+  }
+
+  html footer {
+    padding-top: 7rem;
+  }
+}
+
+@media print {
+  :root {
+    --snow: #fff;
+    --ink: #000;
+    --muted: #444;
+    --marker: #c8102e;
+  }
+
+  .forest {
+    display: none;
+  }
+
+  .wordmark path,
+  .forest-on .wordmark path,
+  .wordmark svg path[data-exit] {
+    stroke: var(--ink);
+    stroke-width: var(--stroke);
+    transition: none;
+  }
+
+  .hero {
+    min-height: 0;
+  }
+
+  /* nothing on paper to point at, or to count */
+  .has-forest .seen,
+  [data-trees] {
+    display: none;
+  }
+
+  .sign::before {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
