@@ -2,7 +2,8 @@
 // edit this list and reload: every entry gets its own clearing, and the forest
 // and the trail rearrange themselves around whatever is here.
 //
-// the six below are placeholders. (nameLang is optional: the language the
+// the six below are made up: this page is a design benchmark, and they are
+// there to give the layout something to hold. (nameLang is optional: the language the
 // name is a word of, if it is not english, so that screen readers say it right.)
 
 window.PROJECTS = [
