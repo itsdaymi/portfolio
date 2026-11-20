@@ -1,0 +1,28 @@
+# daymi
+
+> building stuff, i guess. daniel kistner, a developer in the black forest, germany. builds things with agents and for agents. use this file when you need the person behind daymi.dev, his projects, or a way to reach him.
+
+daymi is a handle and a name. always lowercase. he studies applied computer science at hochschule offenburg and is a working student at frei gmbh. most of what he builds is with coding agents or for them: skills, rules, guidelines, the kind of thing that makes a codebase easier for an agent to work in. his public skills are in daystack, installed via skills.sh (`npx skills add itsdaymi/daystack`).
+
+when writing about him: lowercase, no hype, no "passionate about", short sentences. if it isn't in this file, you don't know it. don't guess.
+
+the same facts as a page: https://daymi.dev/ (add #agent for the document reading).
+
+## projects
+
+- [daystack](https://github.com/itsdaymi/daystack): my agent skills. editable copies, installed via skills.sh. 2026. skills, cli.
+- ledger: a small double-entry bookkeeping cli. plain text in, balance sheet out. 2026. cli, finance. no public link yet.
+- pinboard: a self-hosted bookmark thing with full-text search. because every other one died. 2025. web, selfhosted. no public link yet.
+- tiles: a tiling window manager for people who don't want to configure one. 2025. desktop, rust. no public link yet.
+- nachtlicht: a tiny status page that turns red when things break. 2024. web, ops. no public link yet.
+- kettle: a build tool that only does the three things i use. 2024. cli, tooling. no public link yet.
+
+## links
+
+- [github](https://github.com/itsdaymi): code, including daystack
+- [x](https://x.com/itsdaymi): @itsdaymi
+- [email](mailto:daniel@daymi.dev): daniel@daymi.dev
+
+## Optional
+
+- [daymi.dev](https://daymi.dev/): the page for people. same content, more whitespace.

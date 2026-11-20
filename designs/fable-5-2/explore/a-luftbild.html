@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>sketch a — luftbild</title>
+<style>
+@font-face{font-family:Barlow;src:url(../fonts/barlow-latin-400-normal.woff2) format('woff2');font-weight:400}
+@font-face{font-family:Barlow;src:url(../fonts/barlow-latin-500-normal.woff2) format('woff2');font-weight:500}
+html,body{margin:0;height:100%;background:#eef1ef;color:#13201a;font:17px/1.45 Barlow,sans-serif;overflow:hidden}
+canvas{position:fixed;inset:0;width:100%;height:100%}
+.c{position:absolute;margin:0}
+.c p{margin:0}
+.c .m{color:#4c5a53}
+.c b{font-weight:500}
+</style>
+<canvas id="f"></canvas>
+<div class="c" id="bio"><p><b>building stuff, i guess.</b></p><p class="m">daniel kistner. studies applied computer science,<br>works with and for ai agents, lives in the black forest.</p></div>
+<div class="c" id="p1"><p><b>holzweg</b></p><p class="m">tells you when an agent is confidently<br>heading the wrong way.</p></div>
+<div class="c" id="p2"><p><b>kuckuck</b></p><p class="m">cron for agents. pops out on the hour,<br>reports, goes back in.</p></div>
+<script>
+const cv=document.getElementById('f'),ctx=cv.getContext('2d');
+const W=innerWidth,H=innerHeight,D=Math.min(devicePixelRatio||1,2);
+cv.width=W*D;cv.height=H*D;ctx.scale(D,D);
+const small=W<700;
+// ---------- helpers
+function h2(i,j,k){let n=i*374761393+j*668265263+k*974711;n=(n^(n>>>13))*1274126177;n^=n>>>16;return (n>>>0)/4294967296;}
+function vnoise(x,y){const xi=Math.floor(x),yi=Math.floor(y),xf=x-xi,yf=y-yi,u=xf*xf*(3-2*xf),v=yf*yf*(3-2*yf);
+  const a=h2(xi,yi,7),b=h2(xi+1,yi,7),c=h2(xi,yi+1,7),d=h2(xi+1,yi+1,7);return a+(b-a)*u+(c-a)*v+(a-b-c+d)*u*v;}
+const sstep=(a,b,x)=>{x=Math.min(1,Math.max(0,(x-a)/(b-a)));return x*x*(3-2*x);};
+function arc(cx,cy,r,a0,a1,n=28){const p=[];for(let i=0;i<=n;i++){const a=a0+(a1-a0)*i/n;p.push([cx+r*Math.cos(a),cy+r*Math.sin(a)]);}return p;}
+const PI=Math.PI;
+// ---------- wordmark (unit coords, baseline y=0, x-height 1)
+function wordmark(){const P=[];let x=0;const g=.44;
+  P.push(arc(x+.5,-.5,.5,0,PI*2,44));P.push([[x+1,-1.62],[x+1,0]]);x+=1+g;
+  P.push(arc(x+.5,-.5,.5,0,PI*2,44));P.push([[x+1,-1],[x+1,0]]);x+=1+g;
+  P.push([[x,-1],[x,-.5],...arc(x+.5,-.5,.5,PI,0),[x+1,-1]]);const tail=[x+1,-.5];x+=1+g;
+  P.push([[x,-1],[x,0]]);P.push([[x,-.6],...arc(x+.4,-.6,.4,PI,2*PI),[x+.8,0]]);P.push([[x+.8,-.6],...arc(x+1.2,-.6,.4,PI,2*PI),[x+1.6,0]]);x+=1.6+g;
+  P.push([[x,-1],[x,0]]);P.push([[x,-1.5],[x,-1.49]]);
+  return {P,width:x,tail};}
+const wm=wordmark();
+const u=Math.min(W*(small?.86:.74)/wm.width,H*.24);
+const ox=(W-wm.width*u)/2,oy=H*(small?.36:.46);
+const segs=[];// x1,y1,x2,y2,hw,noiseAmp
+function addPoly(pts,hw,na){for(let i=0;i<pts.length-1;i++)segs.push([pts[i][0],pts[i][1],pts[i+1][0],pts[i+1][1],hw,na]);}
+wm.P.forEach(p=>addPoly(p.map(([x,y])=>[ox+x*u,oy+y*u]),u*.15,0));
+// ---------- trail: continues from the y
+const tx=ox+wm.tail[0]*u,ty=oy+wm.tail[1]*u;
+function spline(pts,n=18){const o=[];for(let i=0;i<pts.length-1;i++){const p0=pts[Math.max(0,i-1)],p1=pts[i],p2=pts[i+1],p3=pts[Math.min(pts.length-1,i+2)];
+  for(let k=0;k<n;k++){const t=k/n,t2=t*t,t3=t2*t;o.push([.5*((2*p1[0])+(-p0[0]+p2[0])*t+(2*p0[0]-5*p1[0]+4*p2[0]-p3[0])*t2+(-p0[0]+3*p1[0]-3*p2[0]+p3[0])*t3),
+  .5*((2*p1[1])+(-p0[1]+p2[1])*t+(2*p0[1]-5*p1[1]+4*p2[1]-p3[1])*t2+(-p0[1]+3*p1[1]-3*p2[1]+p3[1])*t3)]);}}o.push(pts[pts.length-1]);return o;}
+const bioW=small?W-56:430,bioH=small?120:92;
+const bioX=small?28:tx+70,bioY=small?oy+u*1.25:oy+u*1.02;
+const trail=small?spline([[tx,ty],[tx,oy+u*.55],[tx+8,oy+u*.9],[W*.5,bioY-30],[W*.3,bioY+bioH+60],[W*.55,H+40]])
+ :spline([[tx,ty],[tx,oy+u*.6],[tx-10,oy+u*1.0],[tx-50,oy+u*1.45],[tx-190,oy+u*1.9],[tx-420,H*.93],[tx-470,H+60]]);
+addPoly(trail,small?5:7,3);
+// ---------- clearings (rects)
+const rects=[[bioX-26,bioY-22,bioW+52,bioH+44,40]];
+const place=(id,x,y)=>{const e=document.getElementById(id);e.style.left=x+'px';e.style.top=y+'px';};
+place('bio',bioX,bioY);
+if(!small){rects.push([W*.08-26,H*.80-22,360,150,40]);place('p1',W*.08,H*.80);rects.push([W*.70-26,H*.86-22,360,150,40]);place('p2',W*.70,H*.86);}
+else{document.getElementById('p1').style.display='none';document.getElementById('p2').style.display='none';}
+function field(x,y){let d=1e9;
+  for(const s of segs){const vx=s[2]-s[0],vy=s[3]-s[1],wx=x-s[0],wy=y-s[1];let t=(wx*vx+wy*vy)/(vx*vx+vy*vy||1);t=t<0?0:t>1?1:t;
+    const dx=wx-t*vx,dy=wy-t*vy;let dd=Math.sqrt(dx*dx+dy*dy)-s[4];if(s[5])dd+=(vnoise(x*.05,y*.05)-.5)*2*s[5];if(dd<d)d=dd;}
+  for(const r of rects){const cx=r[0]+r[2]/2,cy=r[1]+r[3]/2,qx=Math.abs(x-cx)-r[2]/2+r[4],qy=Math.abs(y-cy)-r[3]/2+r[4];
+    let dd=Math.min(Math.max(qx,qy),0)+Math.hypot(Math.max(qx,0),Math.max(qy,0))-r[4];
+    dd+=(vnoise(x*.022,y*.022)-.5)*46+(vnoise(x*.07,y*.07)-.5)*16;if(dd<d)d=dd;}
+  return d;}
+// ---------- trees
+const sp=small?8.5:13,nadir=[W/2,H/2],diag=Math.hypot(W,H)/2,maxLean=sp*1.5;
+const T=[];
+for(let j=-2;j<H/sp+3;j++)for(let i=-2;i<W/sp+3;i++){
+  const x=(i+.15+.7*h2(i,j,1))*sp,y=(j+.15+.7*h2(i,j,2))*sp;
+  const c=field(x,y);const s=sstep(1,sp*1.3,c);if(s<.2)continue;
+  const r=sp*(.44+.3*h2(i,j,3))*(.45+.55*s),hg=(.65+.7*h2(i,j,4))*s;
+  T.push([x,y,r,(x-nadir[0])/diag*maxLean*hg,(y-nadir[1])/diag*maxLean*hg,hg]);}
+ctx.fillStyle='#eef1ef';ctx.fillRect(0,0,W,H);
+// shadows (sun from upper left, low winter light)
+ctx.fillStyle='rgba(138,158,170,.5)';ctx.beginPath();
+for(const t of T){const l=t[2]*2.4*t[5];ctx.moveTo(t[0]+l*.5+t[2],t[1]+l*.32);ctx.ellipse(t[0]+l*.5,t[1]+l*.32,t[2]+l*.5,t[2]*.85,.57,0,7);}
+ctx.fill();
+const tiers=[['#0f1a15',0,1],['#1a2b22',.45,.72],['#2b4135',.85,.42]];
+for(const [col,k,rs] of tiers){ctx.fillStyle=col;ctx.beginPath();for(const t of T){const x=t[0]+t[3]*k,y=t[1]+t[4]*k;ctx.moveTo(x+t[2]*rs,y);ctx.arc(x,y,t[2]*rs,0,7);}ctx.fill();}
+// snow on the tips
+ctx.fillStyle='#e3e9e6';ctx.beginPath();for(const t of T){const x=t[0]+t[3]*1.05-t[2]*.08,y=t[1]+t[4]*1.05-t[2]*.08;ctx.moveTo(x+t[2]*.17,y);ctx.arc(x,y,t[2]*.17,0,7);}ctx.fill();
+</script>
+</html>

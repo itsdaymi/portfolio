@@ -1,0 +1,554 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>daymi, in layers</title>
+<style>
+  @font-face { font-family: ep; src: url("../fonts/epilogue.woff2") format("woff2"); font-weight: 100 900; font-display: block; }
+  @font-face { font-family: mm; src: url("../fonts/martian-mono.woff2") format("woff2"); font-weight: 100 800; font-display: block; }
+
+  :root {
+    --surface: #e8e6e1;
+    --ink: #1c1b19;
+    --muted: #7a776f;
+    --accent: #3346ff;
+    --void: #d6d3cb;
+    --m: 56px;
+    --gut: 24px;
+    --px: 1;
+    --aux: 0;
+  }
+  * { box-sizing: border-box; }
+  html {
+    background: var(--void);
+    color: var(--ink);
+    font: 400 16px/1.45 ep, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  body { margin: 0; overflow-x: hidden; }
+  h1, h2, h3, p, ol { margin: 0; padding: 0; }
+  ol { list-style: none; }
+  a { color: inherit; text-decoration-thickness: 1px; text-underline-offset: 0.2em; }
+  a:hover { color: var(--accent); }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+  ::selection { background: var(--ink); color: var(--surface); }
+
+  /* ---------- the 3d rig ---------- */
+  html:not(.ready) #stage { visibility: hidden; }
+  #stage { position: relative; overflow: hidden; perspective: 2600px; cursor: grab; }
+  .calm #stage { cursor: auto; }
+  .pulling, .pulling * { cursor: grabbing !important; }
+  #stack { position: relative; transform-style: preserve-3d; }
+  .layer { position: absolute; inset: 0; pointer-events: none; }
+  .exploding #stack, .exploding .layer { will-change: transform; }
+  .exploding { overflow: hidden; }
+
+  #l-surface { background: var(--surface); }
+  #l-grid, #l-boxes, #l-links { opacity: var(--aux); visibility: hidden; }
+  .exploding #l-grid, .exploding #l-boxes, .exploding #l-links { visibility: visible; }
+
+  .edge, .tag { position: absolute; display: none; opacity: var(--aux); }
+  .exploding .edge, .exploding .tag { display: block; }
+  .edge {
+    left: 0; right: 0;
+    top: var(--ctop, 0px);
+    height: var(--chei, 100%);
+    border: calc(var(--px) * 1px) solid rgba(28, 27, 25, 0.38);
+  }
+  .tag {
+    top: calc(var(--ctop, 0px) + var(--chei, 100%) + var(--px) * 9px);
+    left: 0;
+    pointer-events: none;
+    padding: calc(var(--px) * 4px) calc(var(--px) * 6px);
+    background: var(--surface);
+    box-shadow: 0 0 0 calc(var(--px) * 1px) rgba(28, 27, 25, 0.22);
+    font: 500 calc(var(--px) * 11.5px)/1 mm, ui-monospace, monospace;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+    color: var(--ink);
+  }
+  .tag b { font-weight: 500; color: var(--muted); }
+  #l-surface .edge { border-color: rgba(28, 27, 25, 0.2); }
+  /* each sheet is a little opaque, so the ones further down recede */
+  .exploding #l-grid, .exploding #l-boxes, .exploding #l-type {
+    background-color: rgba(232, 230, 225, calc(var(--aux) * 0.45));
+  }
+
+  #l-grid {
+    background-image: repeating-linear-gradient(to bottom, transparent 0 23px, rgba(122, 119, 111, 0.17) 23px 24px);
+  }
+  #l-grid .col { position: absolute; top: 0; bottom: 0; background: rgba(122, 119, 111, 0.1); }
+  #l-boxes .box { position: absolute; border: calc(var(--px) * 1px) solid rgba(28, 27, 25, 0.62); }
+  #l-boxes .box::before {
+    content: attr(data-size);
+    position: absolute;
+    left: -1px;
+    bottom: 100%;
+    padding-bottom: calc(var(--px) * 3px);
+    font: 400 calc(var(--px) * 9.5px)/1 mm, monospace;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+  #l-links .hit { position: absolute; background: var(--accent); }
+  .tag[data-i="4"] { color: var(--accent); }
+
+  /* ---------- the page itself (layer 04) ---------- */
+  #l-type {
+    position: relative;
+    pointer-events: auto;
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: var(--gut);
+    align-content: start;
+    min-height: 100vh;
+    min-height: 100svh;
+    padding: 30px var(--m) 34px;
+  }
+  .row { grid-column: 1 / -1; display: grid; grid-template-columns: subgrid; }
+
+  .top { align-items: baseline; font-size: 14px; line-height: 1.35; }
+  .who { grid-column: 1 / 4; font-weight: 600; }
+  .role { grid-column: 4 / 8; color: var(--muted); }
+  .links { grid-column: 8 / 12; display: flex; flex-wrap: wrap; column-gap: 22px; }
+  .toggle {
+    grid-column: 12 / 13;
+    justify-self: end;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font: 500 13px/1 ep, sans-serif;
+    color: var(--ink);
+    background: none;
+    border: 1px solid rgba(28, 27, 25, 0.35);
+    border-radius: 2px;
+    padding: 6px 9px 6px 8px;
+    cursor: pointer;
+  }
+  .toggle svg { width: 15px; height: 13px; overflow: visible; }
+  .toggle path { fill: none; stroke: currentColor; stroke-width: 1.2; stroke-linejoin: round; }
+  .toggle:hover { border-color: var(--ink); }
+  .toggle[aria-pressed="true"] { background: var(--ink); color: var(--surface); border-color: var(--ink); }
+
+  .hero { margin-top: 76px; align-items: last baseline; }
+  h1 {
+    grid-column: 1 / 9;
+    font-size: clamp(96px, 19vw, 276px);
+    font-weight: 800;
+    line-height: 0.74;
+    letter-spacing: -0.052em;
+    margin-left: -0.045em;
+    padding-bottom: 0.02em;
+  }
+  .bio { grid-column: 9 / 13; font-size: clamp(20px, 1.95vw, 28px); line-height: 1.15; letter-spacing: -0.01em; }
+
+  .label { font-size: 13px; font-weight: 500; color: var(--muted); line-height: 1.3; }
+  .rule { border-top: 1px solid var(--ink); padding-top: 12px; }
+
+  .work { margin-top: 60px; }
+  .work > .label { grid-column: 1 / -1; }
+  #projects { grid-column: 1 / -1; display: grid; grid-template-columns: subgrid; row-gap: 30px; margin-top: 20px; }
+  #projects li { grid-column: span 4; display: grid; grid-template-columns: 2.6em minmax(0, 1fr); }
+  #projects .n { font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; padding-top: 0.42em; }
+  #projects h3 { font-size: 23px; font-weight: 650; line-height: 1.15; letter-spacing: -0.015em; }
+  #projects h3 a { text-decoration: none; }
+  #projects h3 a:hover { text-decoration: underline; }
+  #projects .blurb { margin-top: 6px; font-size: 15px; line-height: 1.42; max-width: 34em; }
+  #projects .yr { margin-top: 5px; font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+  .foot { margin-top: 56px; align-items: start; }
+  .about { grid-column: 1 / 6; }
+  .about p:not(.label), .colophon p:not(.label) { margin-top: 8px; font-size: 15px; line-height: 1.5; }
+  .colophon { grid-column: 7 / 11; }
+  .colophon .touch { display: none; }
+  .copy { grid-column: 11 / 13; justify-self: end; align-self: end; font-size: 13px; color: var(--muted); }
+
+  @media (pointer: coarse) {
+    .colophon .fine { display: none; }
+    .colophon .touch { display: inline; }
+  }
+
+  @media (max-width: 1100px) {
+    .role { grid-column: 4 / 9; }
+    .links { grid-column: 9 / 12; }
+    #projects li { grid-column: span 6; }
+    .about { grid-column: 1 / 7; }
+    .colophon { grid-column: 8 / 13; }
+    .copy { grid-column: 1 / -1; justify-self: start; margin-top: 28px; }
+  }
+
+  @media (max-width: 760px) {
+    :root { --m: 20px; --gut: 16px; }
+    #l-type { grid-template-columns: repeat(4, minmax(0, 1fr)); padding-top: 18px; padding-bottom: 28px; }
+    .who { grid-column: 1 / 4; grid-row: 1; align-self: center; }
+    .toggle { grid-column: 4 / 5; grid-row: 1; }
+    .role { grid-column: 1 / -1; grid-row: 2; margin-top: 4px; font-size: 13px; }
+    .hero { margin-top: 64px; }
+    h1 { grid-column: 1 / -1; font-size: 30.5vw; }
+    .bio { grid-column: 1 / -1; margin-top: 22px; font-size: 22px; }
+    .links { grid-column: 1 / -1; margin-top: 18px; font-size: 15px; }
+    .work { margin-top: 48px; }
+    #projects { row-gap: 26px; margin-top: 18px; }
+    #projects li { grid-column: 1 / -1; }
+    #projects h3 { font-size: 21px; }
+    .foot { margin-top: 48px; row-gap: 26px; }
+    .about, .colophon, .copy { grid-column: 1 / -1; }
+    .copy { margin-top: 4px; }
+  }
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="stack">
+    <div class="layer" id="l-surface" aria-hidden="true"><i class="edge"></i></div>
+    <div class="layer" id="l-grid" aria-hidden="true"><i class="edge"></i></div>
+    <div class="layer" id="l-boxes" aria-hidden="true"><i class="edge"></i></div>
+
+    <main class="layer" id="l-type">
+      <i class="edge" aria-hidden="true"></i>
+
+      <header class="row top">
+        <p class="who" data-box></p>
+        <p class="role" data-box></p>
+        <nav class="links" aria-label="elsewhere" data-box></nav>
+        <button class="toggle" type="button" aria-pressed="false" data-box>
+          <svg viewBox="0 0 15 13" aria-hidden="true"><path d="M7.5 1 14 4 7.5 7 1 4z"/><path d="M1 6.6 7.5 9.6 14 6.6"/><path d="M1 9.2 7.5 12.2 14 9.2"/></svg>
+          layers
+        </button>
+      </header>
+
+      <section class="row hero">
+        <h1 data-box>daymi</h1>
+        <p class="bio" data-box></p>
+      </section>
+
+      <section class="row work rule" aria-labelledby="work-label">
+        <h2 class="label" id="work-label" data-box>projects</h2>
+        <ol id="projects"></ol>
+      </section>
+
+      <footer class="row foot rule">
+        <section class="about" data-box aria-labelledby="about-label">
+          <h2 class="label" id="about-label">about</h2>
+          <p>i'm daniel. i study applied computer science at hochschule offenburg and work at frei gmbh as a working student. the rest of the time i build things with ai agents, and things for them.</p>
+        </section>
+        <section class="colophon" data-box aria-labelledby="page-label">
+          <h2 class="label" id="page-label">this page</h2>
+          <p>five layers: surface, grid, boxes, type, links. <span class="fine">drag anywhere to pull them apart, or hold l.</span><span class="touch">tap layers to pull them apart.</span></p>
+        </section>
+        <p class="copy" data-box>© 2026 daniel kistner</p>
+      </footer>
+    </main>
+
+    <div class="layer" id="l-links" aria-hidden="true"><i class="edge"></i></div>
+    <span class="tag" data-i="0" aria-hidden="true"></span>
+    <span class="tag" data-i="1" aria-hidden="true"></span>
+    <span class="tag" data-i="2" aria-hidden="true"></span>
+    <span class="tag" data-i="3" aria-hidden="true"></span>
+    <span class="tag" data-i="4" aria-hidden="true"></span>
+  </div>
+</div>
+
+<script src="data.js"></script>
+<script>
+(() => {
+  const D = window.DATA;
+  const root = document.documentElement;
+  const stage = document.getElementById('stage');
+  const stack = document.getElementById('stack');
+  const main = document.getElementById('l-type');
+  const L = [...stack.querySelectorAll(':scope > .layer')]; // surface, grid, boxes, type, links
+  const [surfL, gridL, boxL, , linkL] = L;
+  const toggle = document.querySelector('.toggle');
+  const tags = [...stack.querySelectorAll(':scope > .tag')];
+  const calmMq = matchMedia('(prefers-reduced-motion: reduce)');
+  const calm = () => calmMq.matches;
+  const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+  const PERSP = 2600; // keep in step with #stage
+
+  // ---------- content ----------
+  const el = (tag, props = {}, ...kids) => {
+    const n = document.createElement(tag);
+    Object.assign(n, props);
+    n.append(...kids);
+    return n;
+  };
+  document.querySelector('.who').textContent = D.full;
+  document.querySelector('.role').innerHTML = 'applied computer science, hochschule offenburg<br>working student, frei gmbh';
+  document.querySelector('.bio').textContent = D.bio;
+  const nav = document.querySelector('.links');
+  D.links.forEach((l) => nav.append(el('a', { href: l.href, textContent: l.label })));
+  const ol = document.getElementById('projects');
+  D.projects.forEach((p, i) => {
+    const n = el('span', { className: 'n', textContent: String(i + 1).padStart(2, '0') });
+    n.setAttribute('aria-hidden', 'true');
+    const li = el('li', {}, n, el('div', {},
+      el('h3', {}, el('a', { href: p.url, textContent: p.name })),
+      el('p', { className: 'blurb', textContent: p.blurb }),
+      el('p', { className: 'yr', textContent: p.year })));
+    li.dataset.box = '';
+    ol.append(li);
+  });
+
+  // ---------- the other four layers are drawn from the real dom ----------
+  // offsets, not client rects: they ignore transforms, so this works mid-explosion too
+  function rel(n) {
+    let x = 0, y = 0;
+    for (let e = n; e && e !== main; e = e.offsetParent) { x += e.offsetLeft; y += e.offsetTop; }
+    return { x, y, w: n.offsetWidth, h: n.offsetHeight };
+  }
+  const place = (n, r) => { n.style.cssText = `left:${r.x}px;top:${r.y}px;width:${r.w}px;height:${r.h}px`; return n; };
+  const tag = (i, name, extra) => { tags[i].innerHTML = `${name} <b>${extra}</b>`; };
+
+  function build() {
+    for (const l of [gridL, boxL, linkL]) l.querySelectorAll('.col, .box, .hit').forEach((n) => n.remove());
+    const cs = getComputedStyle(main);
+    const tracks = cs.gridTemplateColumns.split(' ').map(parseFloat);
+    const gap = parseFloat(cs.columnGap);
+    let x = parseFloat(cs.paddingLeft);
+    for (const t of tracks) {
+      gridL.append(place(el('div', { className: 'col' }), { x, y: 0, w: t, h: main.offsetHeight }));
+      x += t + gap;
+    }
+    const boxes = main.querySelectorAll('[data-box]');
+    boxes.forEach((b) => {
+      const r = rel(b);
+      const n = place(el('div', { className: 'box' }), r);
+      n.dataset.size = `${Math.round(r.w)} × ${Math.round(r.h)}`;
+      boxL.append(n);
+    });
+    const hits = main.querySelectorAll('a, button');
+    hits.forEach((a) => linkL.append(place(el('div', { className: 'hit' }), rel(a))));
+    tag(0, '01 surface', `${main.offsetWidth} × ${main.offsetHeight}`);
+    tag(1, '02 grid', `${tracks.length} columns`);
+    tag(2, '03 boxes', `${boxes.length}`);
+    tag(3, '04 type', 'epilogue');
+    tag(4, '05 links', `${hits.length}`);
+  }
+
+  // ---------- state: one spring per gap between layers, one for the tilt ----------
+  const sep = [0, 0, 0, 0, 0], sv = [0, 0, 0, 0, 0], st = [0, 0, 0, 0, 0];
+  let T = 0, TV = 0, TT = 0;          // tilt, 0 flat, 1 exploded
+  let spin = 0, spinV = 0, spinT = 0; // extra turn from a sideways drag
+  let hx = 0, hy = 0, hxT = 0, hyT = 0;
+  let frame = null, raf = 0, last = 0;
+  let drag = null, keyHeld = false, locked = false, moved = false;
+  const held = () => !!drag || keyHeld || locked;
+
+  // frame the part of the page that is on screen, and work out how small the
+  // exploded stack has to be to fit in the window
+  function prepare() {
+    const W = stack.offsetWidth, H = stack.offsetHeight, vh = innerHeight;
+    const top = clamp(scrollY, 0, Math.max(0, H - vh));
+    const bot = Math.min(H, top + vh), Hc = bot - top;
+    const portrait = vh > W * 1.15;
+    const A = portrait ? 58 : 58, B = portrait ? -16 : -32, gap = portrait ? 96 : 150;
+    const a = A * Math.PI / 180, b = B * Math.PI / 180;
+    // project the corners of the whole stack, perspective included, and
+    // shrink until it fits. depth scales with it, so iterate a few times.
+    let s = 0.6, bx;
+    for (let it = 0; it < 8; it++) {
+      bx = [Infinity, -Infinity, Infinity, -Infinity];
+      // the bottom edge gets room for the labels that hang under each sheet
+      for (const x of [-W / 2, W / 2]) for (const y of [-Hc / 2, Hc / 2 + 26 / s]) for (const z of [0, gap * 4]) {
+        const rx = x * Math.cos(b) - y * Math.sin(b), ry = x * Math.sin(b) + y * Math.cos(b);
+        const k = PERSP / (PERSP - s * (ry * Math.sin(a) + z * Math.cos(a)));
+        const X = s * rx * k, Y = s * (ry * Math.cos(a) - z * Math.sin(a)) * k;
+        bx = [Math.min(bx[0], X), Math.max(bx[1], X), Math.min(bx[2], Y), Math.max(bx[3], Y)];
+      }
+      s = Math.min(s * 0.9 * W / (bx[1] - bx[0]), s * 0.84 * vh / (bx[3] - bx[2]), 0.8);
+    }
+    frame = { W, H, top, Hc, A, B, gap, s, cx: (bx[0] + bx[1]) / 2, cy: (bx[2] + bx[3]) / 2 };
+    const clip = top > 0.5 || H - bot > 0.5 ? `inset(${top}px 0 ${H - bot}px 0)` : '';
+    L.forEach((l) => { l.style.clipPath = clip; });
+    stack.style.setProperty('--ctop', `${top}px`);
+    stack.style.setProperty('--chei', `${Hc}px`);
+    stack.style.setProperty('--px', (1 / s).toFixed(3));
+    const o = `${W / 2}px ${top + Hc / 2}px`;
+    stack.style.transformOrigin = o;
+    stage.style.perspectiveOrigin = o;
+    root.classList.add('exploding');
+  }
+
+  function flatten() {
+    stack.style.transform = '';
+    L.forEach((l) => { l.style.transform = ''; l.style.clipPath = ''; });
+    tags.forEach((t) => { t.style.transform = ''; t.style.opacity = ''; });
+    stack.style.setProperty('--aux', 0);
+    root.classList.remove('exploding');
+    frame = null;
+  }
+
+  function render() {
+    const f = frame;
+    const t = Math.max(0, T), u = Math.min(1, t), tc = Math.max(-0.3, T);
+    const a = f.A * tc + hy * 5 * u;
+    const b = f.B * tc + spin + hx * 7 * u;
+    const s = 1 - (1 - f.s) * u;
+    stack.style.transform =
+      `translate(${-f.cx * u}px, ${-f.cy * u}px) scale3d(${s}, ${s}, ${s}) rotateX(${a}deg) rotateZ(${b}deg)`;
+    const aux = Math.min(1, t * 4);
+    let z = 0;
+    for (let i = 0; i < L.length; i++) {
+      if (i) {
+        z += f.gap * sep[i];
+        L[i].style.transform = `translateZ(${z.toFixed(2)}px)`;
+      }
+      tags[i].style.transform = `translateZ(${(z + 0.5).toFixed(2)}px)`;
+      // a sheet that has landed on the one below shares its label
+      tags[i].style.opacity = (i ? aux * Math.min(1, sep[i] * 6) : aux).toFixed(3);
+    }
+    stack.style.setProperty('--aux', aux.toFixed(3));
+  }
+
+  function step(h) {
+    for (let i = 1; i < 5; i++) {
+      // going down, aim a little below the floor so each layer lands with a knock
+      const up = st[i] > 0;
+      const K = up ? 150 : 260, tgt = up ? st[i] : -0.16;
+      sv[i] += (-K * (sep[i] - tgt) - 2 * 0.74 * Math.sqrt(K) * sv[i]) * h;
+      sep[i] += sv[i] * h;
+      if (sep[i] < 0) {
+        sep[i] = 0;
+        sv[i] = sv[i] < 0 ? -sv[i] * 0.3 : sv[i];
+        if (sv[i] < 0.06) sv[i] = 0;
+      }
+    }
+    TV += (-80 * (T - TT) - 2 * 0.58 * Math.sqrt(80) * TV) * h;
+    T += TV * h;
+    spinV += (-120 * (spin - spinT) - 2 * 0.7 * Math.sqrt(120) * spinV) * h;
+    spin += spinV * h;
+  }
+
+  function tick(now) {
+    const dt = Math.min(0.05, (now - last) / 1000);
+    last = now;
+    const n = Math.max(1, Math.ceil(dt * 240));
+    for (let k = 0; k < n; k++) step(dt / n);
+    const g = 1 - Math.exp(-dt * 7);
+    hx += (hxT - hx) * g;
+    hy += (hyT - hy) * g;
+    render();
+    const resting = !held() && Math.abs(T) < 0.002 && Math.abs(TV) < 0.01 &&
+      Math.abs(spin) < 0.05 && Math.abs(spinV) < 0.05 && sep.every((v, i) => v === 0 && sv[i] === 0);
+    if (resting) { T = TV = spin = spinV = 0; flatten(); raf = 0; return; }
+    raf = requestAnimationFrame(tick);
+  }
+
+  function kick() {
+    if (!frame) prepare();
+    if (calm()) {
+      for (let i = 1; i < 5; i++) { sep[i] = st[i]; sv[i] = 0; }
+      T = TT; TV = 0; spin = spinV = 0;
+      if (T === 0) flatten(); else render();
+      return;
+    }
+    if (!raf) { last = performance.now(); raf = requestAnimationFrame(tick); }
+  }
+
+  function aim(v) {
+    for (let i = 1; i < 5; i++) st[i] = v;
+    TT = v;
+    kick();
+  }
+  const rest = () => (held() ? 1 : 0);
+
+  function setLocked(on) {
+    locked = on;
+    toggle.setAttribute('aria-pressed', String(on));
+    aim(rest());
+  }
+
+  // ---------- hands ----------
+  stage.addEventListener('pointerdown', (e) => {
+    if (e.button !== 0 || e.pointerType === 'touch' || calm()) return;
+    if (e.target.closest('a, button')) return;
+    e.preventDefault();
+    drag = { x: e.clientX, y: e.clientY, id: e.pointerId, base: locked ? 1 : 0 };
+    moved = false;
+    stage.setPointerCapture(e.pointerId);
+    root.classList.add('pulling');
+  });
+  stage.addEventListener('pointermove', (e) => {
+    if (e.pointerType === 'mouse') {
+      hxT = e.clientX / innerWidth * 2 - 1;
+      hyT = e.clientY / innerHeight * 2 - 1;
+      if (frame && !raf) kick();
+    }
+    if (!drag || e.pointerId !== drag.id) return;
+    const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+    if (Math.hypot(dx, dy) > 4) moved = true;
+    const d = clamp(Math.hypot(dx, dy) / Math.min(360, innerHeight * 0.45), 0, 1);
+    const E = Math.max(drag.base, 1 - (1 - d) ** 2);
+    for (let i = 1; i < 5; i++) st[i] = E;
+    TT = E;
+    spinT = clamp(dx * 0.045, -18, 18);
+    kick();
+  });
+  const letGo = (e) => {
+    if (!drag || e.pointerId !== drag.id) return;
+    drag = null;
+    root.classList.remove('pulling');
+    spinT = 0;
+    aim(rest());
+  };
+  stage.addEventListener('pointerup', letGo);
+  stage.addEventListener('pointercancel', letGo);
+  stage.addEventListener('lostpointercapture', letGo);
+
+  // while exploded, a tap on the page puts it back together
+  stage.addEventListener('click', (e) => {
+    if (moved) { moved = false; return; }
+    if (locked && !e.target.closest('a, button')) setLocked(false);
+  });
+
+  toggle.addEventListener('click', () => setLocked(!locked));
+
+  addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && locked) setLocked(false);
+    if ((e.key === 'l' || e.key === 'L') && !e.repeat && !e.ctrlKey && !e.metaKey && !e.altKey) {
+      keyHeld = true;
+      aim(1);
+    }
+  });
+  addEventListener('keyup', (e) => {
+    if (e.key === 'l' || e.key === 'L') { keyHeld = false; aim(rest()); }
+  });
+  addEventListener('blur', () => { if (keyHeld) { keyHeld = false; aim(rest()); } });
+
+  let resizeTimer = 0;
+  addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => {
+      const was = !!frame;
+      flatten();
+      build();
+      if (was) { prepare(); render(); }
+    }, 150);
+  });
+
+  calmMq.addEventListener('change', () => root.classList.toggle('calm', calm()));
+
+  // ---------- intro: arrive in pieces, then stack up ----------
+  function intro() {
+    root.classList.toggle('calm', calm());
+    if (calm()) { root.classList.add('ready'); return; }
+    prepare();
+    for (let i = 1; i < 5; i++) { sep[i] = 1; st[i] = 1; }
+    T = TT = 1;
+    render();
+    root.classList.add('ready');
+    kick();
+    const t0 = 700, gap = 230;
+    [4, 3, 2, 1].forEach((i, k) => setTimeout(() => { if (!held()) { st[i] = 0; kick(); } }, t0 + k * gap));
+    setTimeout(() => { if (!held()) { TT = 0; kick(); } }, t0 + 3 * gap + 200);
+  }
+
+  document.fonts.ready.then(() => { build(); intro(); });
+
+  window.layers = { aim, setLocked, get state() { return { T, sep: [...sep], spin, frame }; } };
+})();
+</script>
+</body>
+</html>

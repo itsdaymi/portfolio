@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>sketch b — stämme</title>
+<style>
+@font-face{font-family:Barlow;src:url(../fonts/barlow-latin-400-normal.woff2) format('woff2');font-weight:400}
+@font-face{font-family:Barlow;src:url(../fonts/barlow-latin-600-normal.woff2) format('woff2');font-weight:600}
+html,body{margin:0;height:100%;background:#e9edea;color:#111a16;font:17px/1.45 Barlow,sans-serif;overflow:hidden}
+canvas{position:fixed;inset:0;width:100%;height:100%}
+h1{position:absolute;margin:0;left:0;right:0;top:50%;transform:translateY(-62%);text-align:center;font-weight:600;font-size:min(30vw,46vh);letter-spacing:-.045em;line-height:1;color:#111a16}
+#front{z-index:2;pointer-events:none}
+.bio{position:absolute;z-index:3;left:max(28px,9vw);bottom:9vh;margin:0}
+.bio span{display:block;color:#4c5a53}
+</style>
+<canvas id="back"></canvas>
+<h1>daymi</h1>
+<canvas id="front"></canvas>
+<p class="bio">building stuff, i guess.<span>daniel kistner, black forest.</span></p>
+<script>
+const W=innerWidth,H=innerHeight,D=Math.min(devicePixelRatio||1,2);
+function rnd(seed){let s=seed;return()=>{s=(s*1664525+1013904223)>>>0;return s/4294967296;};}
+function layer(id,specs){const cv=document.getElementById(id),c=cv.getContext('2d');cv.width=W*D;cv.height=H*D;c.scale(D,D);
+  for(const [n,wmin,wmax,col,seed,gapA,gapB] of specs){const r=rnd(seed);
+    for(let i=0;i<n;i++){const x=(i+.2+.6*r())/n*W,w=wmin+(wmax-wmin)*r(),lean=(r()-.5)*.012;
+      if(gapA!==undefined&&x>gapA*W&&x<gapB*W)continue;
+      c.fillStyle=col;c.beginPath();c.moveTo(x-w/2-lean*H,0);c.lineTo(x+w/2-lean*H,0);c.lineTo(x+w*.62+lean*H,H);c.lineTo(x-w*.62+lean*H,H);c.fill();}}
+  return c;}
+const small=W<700;
+const b=layer('back',[[small?13:34,3,8,'#cfd7d2',11],[small?9:24,6,14,'#aebab3',23],[small?7:17,10,24,'#7f8f87',37]]);
+// ground fog
+let g=b.createLinearGradient(0,H*.55,0,H);g.addColorStop(0,'rgba(233,237,234,0)');g.addColorStop(1,'rgba(233,237,234,.95)');b.fillStyle=g;b.fillRect(0,0,W,H);
+layer('front',[[small?4:9,22,44,'#3c4b44',51,.2,.45],[small?3:6,46,92,'#0f1814',77,.12,.5]]);
+</script>
+</html>

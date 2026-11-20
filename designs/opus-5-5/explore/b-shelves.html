@@ -1,0 +1,33 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>B: crooked shelves</title>
+<style>
+  @font-face { font-family: ep; src: url("../fonts/epilogue.woff2") format("woff2"); font-weight: 100 900; }
+  :root { --fog: #e6eae5; --fir: #16221c; --mid: #5a675f; --red: #cf2a1d; }
+  body { margin: 0; background: var(--fog); color: var(--fir); font: 400 16px/1.5 ep, sans-serif; }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 0 40px; position: relative; }
+  .top { display: flex; justify-content: space-between; padding: 28px 0; font-size: 15px; }
+  .top a { color: inherit; margin-left: 22px; }
+  h1 { font-size: 300px; line-height: .8; font-weight: 900; letter-spacing: -.045em; margin: 150px 0 0; position: relative; display: inline-block; }
+  .ball { position: absolute; width: 62px; height: 62px; border-radius: 50%; background: var(--red); }
+  .bio { font-size: 26px; margin: 34px 0 0; font-weight: 400; }
+  .shelf { position: relative; height: 1.5px; background: var(--fir); transform-origin: left center; margin: 0; }
+  .s1 { width: 86%; transform: rotate(1.6deg); margin-top: 60px; }
+  .s2 { width: 86%; margin-left: 14%; transform-origin: right center; transform: rotate(-1.6deg); }
+  .row { display: grid; grid-template-columns: 1fr 2fr 80px; gap: 30px; padding: 46px 0 30px; align-items: baseline; }
+  .row b { font-size: 34px; font-weight: 700; letter-spacing: -.02em; }
+  .row span { color: var(--mid); max-width: 52ch; }
+  .row i { font-style: normal; text-align: right; color: var(--mid); }
+</style>
+<div class="wrap">
+  <div class="top"><span>daniel kistner</span><span><a href="#">github</a><a href="#">x</a><a href="#">email</a></span></div>
+  <h1>daym&#305;<span class="ball" style="right: 10px; top: -22px"></span></h1>
+  <p class="bio">building stuff, i guess.</p>
+  <div class="shelf s1"></div>
+  <div class="row"><b>handoff</b><span>lets one agent pass a half-finished task to another without losing the plot.</span><i>2026</i></div>
+  <div class="shelf s2"></div>
+  <div class="row"><b>dry-run</b><span>a sandbox where agents rehearse shell commands before they touch anything real.</span><i>2026</i></div>
+  <div class="shelf s1" style="margin-top:0"></div>
+  <div class="row"><b>nachtschicht</b><span>queues agent jobs overnight and reports in the morning, like a decent colleague.</span><i>2025</i></div>
+  <div class="shelf s2"></div>
+</div>

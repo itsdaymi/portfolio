@@ -1,0 +1,65 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>C: wordmark terrain</title>
+<style>
+  @font-face { font-family: hs; src: url("../fonts/hepta-slab.woff2") format("woff2"); font-weight: 1 900; }
+  :root { --fog: #e6eae5; --fir: #16221c; --mid: #5a675f; --red: #cf2a1d; }
+  body { margin: 0; background: var(--fog); color: var(--fir); font: 400 15px/1.5 hs, serif; }
+  canvas { display: block; width: 100vw; height: 100vh; }
+  .t { position: absolute; }
+  .bio { left: 64px; bottom: 56px; font-size: 22px; }
+  .nav { right: 64px; top: 40px; }
+  .nav a { color: inherit; margin-left: 20px; }
+  .pk { font-size: 13px; color: var(--fir); }
+  .pk b { display: block; font-size: 17px; font-weight: 700 }
+</style>
+<canvas id="c"></canvas>
+<div class="t bio">building stuff, i guess.</div>
+<div class="t nav"><a href="#">github</a><a href="#">x</a><a href="#">email</a></div>
+<div class="t pk" style="left: 71%; top: 68%"><b>▲ handoff</b>812 m</div>
+<div class="t pk" style="left: 84%; top: 34%"><b>▲ dry-run</b>640 m</div>
+<script>
+document.fonts.load('900 100px hs').then(() => {
+  const W = innerWidth, H = innerHeight, S = 4, gw = Math.ceil(W / S) + 1, gh = Math.ceil(H / S) + 1;
+  const o = document.createElement('canvas'); o.width = gw; o.height = gh;
+  const x = o.getContext('2d');
+  x.fillStyle = '#000'; x.fillRect(0, 0, gw, gh);
+  const field = new Float32Array(gw * gh);
+  const add = (blur, k) => {
+    x.filter = `blur(${blur}px)`; x.fillStyle = '#000'; x.fillRect(0, 0, gw, gh);
+    x.fillStyle = '#fff'; x.font = `900 ${gw * 0.2}px hs`; x.textBaseline = 'middle'; x.textAlign = 'center';
+    x.fillText('daymi', gw * 0.46, gh * 0.47);
+    // two side hills (projects)
+    x.beginPath(); x.arc(gw * 0.74, gh * 0.72, 9, 0, 7); x.fill();
+    x.beginPath(); x.arc(gw * 0.87, gh * 0.38, 7, 0, 7); x.fill();
+    const d = x.getImageData(0, 0, gw, gh).data;
+    for (let i = 0; i < field.length; i++) field[i] += k * d[i * 4] / 255;
+  };
+  add(1.2, 0.4); add(5, 0.5); add(14, 0.9); add(34, 1.4);
+  for (let j = 0; j < gh; j++) for (let i = 0; i < gw; i++)
+    field[j * gw + i] += 0.1 * Math.sin(i * 0.035 + j * 0.02) + 0.08 * Math.sin(j * 0.05 - i * 0.012);
+  const c = document.getElementById('c'), dpr = devicePixelRatio;
+  c.width = W * dpr; c.height = H * dpr;
+  const g = c.getContext('2d'); g.scale(dpr, dpr);
+  const f = (i, j) => field[j * gw + i];
+  const levels = 22, max = 2.4;
+  for (let l = 1; l <= levels; l++) {
+    const v = (l / levels) * max;
+    g.beginPath();
+    for (let j = 0; j < gh - 1; j++) for (let i = 0; i < gw - 1; i++) {
+      const a = f(i, j), b = f(i + 1, j), cc = f(i + 1, j + 1), d = f(i, j + 1);
+      const pts = [];
+      const lerp = (p, q, x0, y0, x1, y1) => { const t = (v - p) / (q - p); pts.push([(x0 + t * (x1 - x0)) * S, (y0 + t * (y1 - y0)) * S]); };
+      if ((a < v) !== (b < v)) lerp(a, b, i, j, i + 1, j);
+      if ((b < v) !== (cc < v)) lerp(b, cc, i + 1, j, i + 1, j + 1);
+      if ((cc < v) !== (d < v)) lerp(cc, d, i + 1, j + 1, i, j + 1);
+      if ((d < v) !== (a < v)) lerp(d, a, i, j + 1, i, j);
+      if (pts.length >= 2) { g.moveTo(...pts[0]); g.lineTo(...pts[1]); }
+      if (pts.length === 4) { g.moveTo(...pts[2]); g.lineTo(...pts[3]); }
+    }
+    g.strokeStyle = l % 5 === 0 ? '#16221c' : 'rgba(22,34,28,.55)';
+    g.lineWidth = l % 5 === 0 ? 1.1 : 0.6;
+    g.stroke();
+  }
+});
+</script>

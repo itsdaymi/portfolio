@@ -1,0 +1,251 @@
+@font-face {
+  font-family: "Hepta Slab";
+  src: url("fonts/hepta-slab.woff2") format("woff2");
+  font-weight: 1 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  --fog: #e4e8e3;
+  --fir: #14211b;
+  --moss: #556259;
+  --blaze: #cc2b1d;
+  --mark-size: min(18vw, 104px);
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --fog: #101915;
+    --fir: #dfe6e0;
+    --moss: #93a299;
+    --blaze: #e5483a;
+  }
+}
+
+@media (min-width: 960px) {
+  :root { --mark-size: min(9.6vw, 132px); }
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html {
+  background: var(--fog);
+  color: var(--fir);
+  font: 400 16px/1.5 "Hepta Slab", Rockwell, "Roboto Slab", Georgia, serif;
+  -webkit-text-size-adjust: 100%;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+body { margin: 0; overflow-x: hidden; }
+
+::selection { background: var(--fir); color: var(--fog); }
+
+a {
+  color: inherit;
+  text-decoration-line: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.22em;
+}
+a:hover { text-decoration-thickness: 2px; }
+
+:focus-visible {
+  outline: 2px solid var(--fir);
+  outline-offset: 4px;
+  border-radius: 2px;
+}
+
+h1, h2, h3, p, ul { margin: 0; padding: 0; }
+ul { list-style: none; }
+
+/* ---------- the pieces ---------- */
+
+.mark h1 {
+  font-size: var(--mark-size);
+  font-weight: 900;
+  line-height: 0.8;
+  letter-spacing: -0.012em;
+}
+.mark .bio {
+  margin-top: 1.25em;
+  font-size: 1.125rem;
+  line-height: 1.3;
+}
+.mark .who {
+  margin-top: 0.3em;
+  font-size: 0.8125rem;
+  color: var(--moss);
+}
+
+.links a {
+  display: inline-block;
+  padding: 3px 0;
+  font-size: 0.9375rem;
+  font-weight: 500;
+}
+.links li + li { margin-top: 0.25em; }
+
+.project h3 {
+  font-size: 1.1875rem;
+  white-space: nowrap;
+  line-height: 1.15;
+  letter-spacing: -0.005em;
+}
+.project h3 a { text-decoration-line: none; }
+.project h3 a:hover,
+.project h3 a:focus-visible { text-decoration-line: underline; }
+.project p {
+  margin-top: 0.45em;
+  font-size: 0.875rem;
+  line-height: 1.45;
+  font-weight: 380;
+}
+.project .year {
+  margin-top: 0.35em;
+  font-size: 0.75rem;
+  color: var(--moss);
+}
+
+.about p {
+  font-size: 1rem;
+  line-height: 1.58;
+}
+.about p + p { margin-top: 0.9em; }
+
+.blaze {
+  width: 34px;
+  height: 24px;
+  background: var(--blaze);
+  clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+}
+
+.foot {
+  padding: 0 16px 28px;
+  max-width: 552px;
+  margin: 0 auto;
+  font-size: 0.78125rem;
+  line-height: 1.5;
+  color: var(--moss);
+  text-wrap: balance;
+}
+.foot p + p { margin-top: 0.5em; }
+/* only true once the page is actually hanging, and only pullable if it moves */
+.foot .how { display: none; }
+.hung .foot .how { display: block; }
+
+/* below 350px the email address is wider than half the page */
+@media (max-width: 349px) {
+  .links a { font-size: 0.8125rem; }
+}
+
+@media (min-width: 960px) {
+  .mark .bio { font-size: 1.375rem; margin-top: 1.4em; }
+  .project p { font-size: 0.9375rem; }
+  .project .year { font-size: 0.78125rem; }
+  .links a { font-size: 1rem; }
+  .project h3 { font-size: 1.4375rem; }
+  .about p { font-size: 1.0625rem; }
+  .hung .foot {
+    display: flex;
+    justify-content: space-between;
+    gap: 40px;
+    max-width: 1280px;
+    padding: 0 40px 32px;
+  }
+  .hung .foot p + p { margin-top: 0; white-space: nowrap; }
+}
+
+/* ---------- plain flow: no javascript, or before anything is hung ---------- */
+
+.mobile {
+  position: relative;
+  max-width: 552px;
+  margin: 0 auto;
+  padding: 72px 16px 56px;
+}
+.mobile > * + * { margin-top: 44px; }
+.wires { display: none; }
+.projects h2, .about h2 {
+  font-size: 0.8125rem;
+  font-weight: 400;
+  color: var(--moss);
+  margin-bottom: 14px;
+}
+.project + .project { margin-top: 26px; }
+
+/* wait for the layout, but never wait forever */
+.js .mobile, .js .foot { opacity: 0; }
+.js:not(.hung) .mobile, .js:not(.hung) .foot { animation: show 0.01s 3s forwards; }
+@keyframes show { to { opacity: 1; } }
+
+/* ---------- hung: every piece hangs from a wire ---------- */
+
+.hung .mobile {
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  overflow: clip;
+  opacity: 1;
+  transition: opacity 0.7s ease-out;
+}
+.hung .foot { opacity: 1; transition: opacity 0.7s ease-out 0.3s; }
+.hung .mobile > * + * { margin-top: 0; }
+
+.hung .wires {
+  display: block;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+  fill: none;
+  stroke: var(--fir);
+}
+.hung .wires .arm { stroke-width: 2; stroke-linecap: round; }
+.hung .wires .string { stroke-width: 0.8; stroke: var(--moss); }
+.hung .wires .ring { stroke-width: 1.2; fill: var(--fog); }
+.hung .wires .knot { stroke: none; fill: var(--fir); }
+
+.hung .projects h2, .hung .about h2 {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.hung [data-hung] {
+  position: absolute;
+  left: 0;
+  top: 0;
+  margin: 0;
+  width: max-content;
+  max-width: var(--bw, 15rem);
+  padding-top: 11px;
+  text-align: center;
+  text-wrap: balance;
+  transform-origin: 0 0;
+  will-change: transform;
+  touch-action: pan-y;
+  cursor: grab;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.hung .mark[data-hung], .hung .links[data-hung] { max-width: none; }
+.hung .blaze[data-hung] { width: 34px; height: 24px; padding: 0; }
+.hung .about p[data-hung] { max-width: var(--aw, 26rem); }
+.hung .links li[data-hung] { margin: 0; }
+.hung .links a { min-width: 24px; }
+.hung [data-hung] a { -webkit-user-drag: none; }
+.pulling, .pulling * { cursor: grabbing !important; }
+
+@media (prefers-reduced-motion: reduce) {
+  .foot .live { display: none; }
+  .hung .mobile, .hung .foot { transition: none; }
+  .hung [data-hung] { cursor: auto; will-change: auto; }
+}
